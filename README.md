@@ -1,0 +1,2 @@
+# android_weidgt
+hongxiangge项目是一个在线阅读创造类客户端，其他几个都是依赖库，其中AsynTask2属于我自己原创
