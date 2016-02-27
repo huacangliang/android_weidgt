@@ -1,0 +1,280 @@
+package com.jingzhong.asyntask2.ui;
+
+import java.io.BufferedInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Map;
+
+import org.apache.http.util.ByteArrayBuffer;
+
+import android.app.Activity;
+import android.app.ProgressDialog;
+import android.content.DialogInterface;
+import android.content.DialogInterface.OnCancelListener;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.os.Bundle;
+import android.os.Environment;
+import android.os.Handler;
+import android.util.Log;
+import android.widget.ImageView;
+import android.widget.ProgressBar;
+
+import com.jingzhong.asyntask2.Asyntask2;
+import com.jingzhong.asyntask2.R;
+import com.jingzhong.asyntask2.annotation.CreateView;
+import com.jingzhong.asyntask2.utils.HttpUtils;
+import com.jingzhong.asyntask2.utils.MultiThreadDownLoadUtils;
+import com.jingzhong.asyntask2.utils.MultiThreadDownLoadUtils.DownListenear;
+import com.jingzhong.asyntask2.utils.ThreadService;
+import com.jingzhong.asyntask2.utils.Utils;
+import com.jingzhong.asyntask2.utils.HttpUtils.Result;
+
+/**
+ * 
+ * @author dengzhijiang
+ * 
+ */
+public class MainActivity
+		extends Activity {
+
+	@CreateView(value = "imageView1")
+	private ImageView	imageView1;
+
+	@CreateView(value = "progressBar1")
+	private ProgressBar	progressBar1;
+
+	@Override
+	protected void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+		setContentView(R.layout.activity_main);
+		try {
+			Utils.injectObject(this, this, R.id.class);
+		}
+		catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+		// String url =
+		// "http://a.hiphotos.baidu.com/image/pic/item/48540923dd54564e8a42582cb1de9c82d1584ffb.jpg";
+		// Task task = new Task();
+		// task.execute(url);
+		ThreadService.getInstance().clear();
+		download=new MultiDownload();
+		new Handler().postDelayed(new Runnable() {
+			
+			@Override
+			public void run() {
+				// TODO Auto-generated method stub
+				download.execute();
+			}
+		}, 1000);
+		
+	}
+	
+	MultiDownload download;
+
+	public class Task
+			extends Asyntask2<String, Integer, byte[]> {
+
+		@Override
+		protected byte[] doInbackProgres(String... params) {
+			// TODO Auto-generated method stub
+			String url = params[0];
+			HttpUtils http = new HttpUtils();
+			Map<String, Object> msp = null;
+			try {
+				msp = http.exeHttp(null, url, null, "get");
+			}
+			catch (Exception e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+			InputStream is = (InputStream) msp.get("inputstream");
+			int length = Integer.parseInt(msp.get("length").toString());
+
+			BufferedInputStream bis = new BufferedInputStream(is);
+
+			if (is != null) {
+				try {
+					ByteArrayBuffer buff = new ByteArrayBuffer(1024);
+					int data = 0;
+
+					while (data != -1) {
+						data = bis.read();
+						buff.append((byte) data);
+						if (bis.available() != 0) {
+							int p = (int) (((double) buff.length() / (double) length) * 100);
+							updateProgress(p);
+						}
+					}
+					updateProgress(100);
+					is.close();
+					return buff.toByteArray();
+				}
+				catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+			return null;
+		}
+
+		@Override
+		protected void doProgress(Integer... p) {
+			// TODO Auto-generated method stub
+			super.doProgress(p);
+
+			progressBar1.setProgress(p[0]);
+		}
+
+		@Override
+		protected void doResult(byte[] res) {
+			// TODO Auto-generated method stub
+			super.doResult(res);
+			Bitmap bitmap = BitmapFactory.decodeByteArray(res, 0, res.length);
+			imageView1.setImageBitmap(bitmap);
+		}
+	}
+
+	ProgressDialog pDialog;
+
+	private void showProgressAlert() {
+		// TODO Auto-generated method stub
+		if (pDialog != null && pDialog.isShowing()) {
+			return;
+		}
+		pDialog = new ProgressDialog(this);
+		pDialog.setCancelable(true);
+		pDialog.setCanceledOnTouchOutside(false);
+		pDialog.setMessage("下载中……");
+		pDialog.setOnCancelListener(new OnCancelListener() {
+			
+			@Override
+			public void onCancel(DialogInterface dialog) {
+				// TODO Auto-generated method stub
+				download.cancel();
+			}
+		});
+		pDialog.show();
+	}
+
+	public class MultiDownload
+			extends Asyntask2<String, String, String> {
+
+		boolean						isfnish	= false;
+
+		MultiThreadDownLoadUtils	utils;
+
+		String						result;
+
+		@Override
+		protected void doStart() {
+			// TODO Auto-generated method stub
+			super.doStart();
+			showProgressAlert();
+		}
+
+		@Override
+		protected String doInbackProgres(String... params) {
+			// TODO Auto-generated method stub
+			utils = new MultiThreadDownLoadUtils(getApplicationContext());
+			utils.download("win7.iso", Environment.getExternalStorageDirectory().getAbsolutePath(),
+					"http://down.xitong369.com/YlmF_GHOST_XPSP3_LES_PRO_2015C.iso", new DownListenear() {
+
+						@Override
+						public void onUploadListener(long progress, long tatol) {
+							// TODO Auto-generated method stub
+
+						}
+
+						@Override
+						public void onSuccess(Result r) {
+							// TODO Auto-generated method stub
+
+						}
+
+						@Override
+						public void onError(Exception e, int status) {
+							// TODO Auto-generated method stub
+
+						}
+
+						@Override
+						public void onDwonloadListener(long progress, long tatol) {
+							// TODO Auto-generated method stub
+
+						}
+
+						@Override
+						public void onSuccess(String path, String url) {
+							// TODO Auto-generated method stub
+							result = path + ":" + url;
+							isfnish = true;
+						}
+
+						@Override
+						public void onError(String url, Exception e, int status) {
+							// TODO Auto-generated method stub
+							isfnish = true;
+							if (e != null) {
+								e.printStackTrace();
+							}
+						}
+
+						@Override
+						public boolean continueDownload(String filePath) {
+							// TODO Auto-generated method stub
+							return true;
+						}
+
+						@Override
+						public void onDwonloadListener(long progress, long tatol, String speend, String utime, String stime) {
+							// TODO Auto-generated method stub
+							double p = (((double) progress) / ((double) tatol)) * 100;
+							String msg = "当前进度：" + p + "% " + speend + "kb/s 已用时：" + utime + " 开始时间：" + stime;
+							Log.d("onDwonloadListener", msg);
+							updateProgress(msg);
+						}
+					});
+			while (!isfnish) {
+				try {
+					Thread.sleep(1000);
+				}
+				catch (InterruptedException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
+			}
+			return result;
+		}
+
+		@Override
+		protected void doProgress(String... p) {
+			// TODO Auto-generated method stub
+			super.doProgress(p);
+			pDialog.setMessage(p[0]);
+		}
+
+		@Override
+		public void cancel() {
+			// TODO Auto-generated method stub
+			utils.stop();
+		}
+
+		@Override
+		protected void doResult(String res) {
+			// TODO Auto-generated method stub
+			super.doResult(res);
+			if (res == null) {
+				pDialog.setMessage("下载失败");
+				pDialog.setProgress(100);
+			}
+			else {
+				pDialog.setMessage("下载成功：" + res);
+				pDialog.setProgress(100);
+			}
+		}
+	}
+}

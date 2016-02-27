@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/White" 
+    android:fitsSystemWindows="true">
+
+    <RelativeLayout
+        android:id="@+id/top"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="#44c1c1"
+        android:gravity="center|left"
+        android:orientation="horizontal"
+        android:padding="10dp" >
+
+        <Button
+            android:id="@+id/button1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentTop="true"
+            android:layout_marginLeft="10dp"
+            android:background="@color/transparent"
+            android:clickable="true"
+            android:drawableLeft="@drawable/navi_back_icon"
+            android:onClick="onBack"
+            android:text="返回"
+            android:textColor="#ffffff" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:text="发表评论"
+            android:textColor="@color/White" />
+    </RelativeLayout>
+
+    <EditText
+        android:id="@+id/content"
+        style="@style/normal_edit"
+        android:layout_width="match_parent"
+        android:layout_height="200dp"
+        android:hint="我来说两句"
+        android:maxLines="5"
+        android:layout_below="@id/top" />
+
+    <Button
+        android:id="@+id/attache"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/content"
+        android:text="上传图片"
+        android:visibility="gone" />
+
+    <Button
+        android:id="@+id/submit"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/attache"
+        android:text="发布" />
+
+</RelativeLayout>

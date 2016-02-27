@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#ffffff"
+    android:orientation="vertical" >
+
+    <com.handmark.pulltorefresh.library.PullToRefreshScrollView
+        android:id="@+id/prs"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:scrollbars="none"
+        android:overScrollMode="never" >
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical" >
+
+            <com.hxgwx.www.view.CustomGridView
+                android:id="@+id/hs_type_"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="10dp"
+                android:horizontalSpacing="2dp"
+                android:minHeight="100dp"
+                android:numColumns="4"
+                android:scrollbars="none"
+                android:verticalSpacing="10dp"
+                android:visibility="visible" >
+            </com.hxgwx.www.view.CustomGridView>
+
+            <LinearLayout
+                android:id="@+id/adLayout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:gravity="center_horizontal"
+                android:orientation="horizontal"
+                 >
+            </LinearLayout>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="#cccccc"
+                android:gravity="center"
+                android:text="最近更新"
+                android:textColor="#ffffff"
+                 />
+
+            <com.hxgwx.www.view.CustomLinearLayout
+                android:id="@+id/ll_main_content"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent" >
+
+                <com.handmark.pulltorefresh.library.PullToRefreshListView
+                    android:id="@+id/plv_main_list"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_gravity="center"
+                    android:layout_marginLeft="10dp"
+                    android:layout_marginRight="10dp"
+                    android:layout_marginTop="1dp"
+                    android:divider="#ffffff"
+                    android:dividerHeight="0dp"
+                    android:gravity="center"
+                    android:scrollbars="none" >
+                </com.handmark.pulltorefresh.library.PullToRefreshListView>
+            </com.hxgwx.www.view.CustomLinearLayout>
+        </LinearLayout>
+    </com.handmark.pulltorefresh.library.PullToRefreshScrollView>
+
+</LinearLayout>
