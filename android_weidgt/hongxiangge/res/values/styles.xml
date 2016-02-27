@@ -1,0 +1,80 @@
+<resources xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!--
+        Base application theme, dependent on API level. This theme is replaced
+        by AppBaseTheme from res/values-vXX/styles.xml on newer devices.
+    -->
+    <style name="AppBaseTheme" parent="android:Theme.Light">
+        <!--
+            Theme customizations available in newer API levels can go in
+            res/values-vXX/styles.xml, while customizations related to
+            backward-compatibility can go here.
+        -->
+    </style>
+
+    <!-- Application theme. -->
+    <style name="AppTheme" parent="AppBaseTheme">
+        <!-- All customizations that are NOT specific to a particular API-level can go here. -->
+    </style>
+
+    <style name="notitle_style" parent="@android:style/Theme.Black.NoTitleBar">
+        <item name="android:textColor">@color/Black</item>
+    </style>
+
+    <style name="rb_base_style">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textSize">16sp</item>
+        <item name="android:textColor">@color/Black</item>
+        <item name="android:ellipsize">marquee</item>
+        <item name="android:gravity">center_horizontal</item>
+        <item name="android:button">@null</item>
+        <item name="android:drawablePadding">2dip</item>
+        <item name="android:singleLine">true</item>
+    </style>
+
+    <!-- Application theme. -->
+
+    <style name="equi_edit">
+        <item name="android:background">@drawable/bottom_input_text_view_bg</item>
+    </style>
+
+    <style name="normal_edit">
+        <item name="android:background">@drawable/editor_normal</item>
+    </style>
+
+    <style name="feedback_edit">
+        <item name="android:background">@color/White</item>
+    </style>
+
+    <style name="equi_add_info_edit_style">
+        <item name="android:background">@color/White</item>
+        <item name="android:drawableTop">@color/footerbac</item>
+    </style>
+
+    <style name="net_menu_button_siding">
+        <item name="android:drawableBottom">@color/Black</item>
+    </style>
+
+    <style name="default_theme" parent="@style/AppTheme">
+        <item name="android:background">@color/transparent</item>
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:alwaysDrawnWithCache">true</item>
+        <item name="android:hapticFeedbackEnabled">true</item>
+        <item name="android:textColor">@color/Black</item>
+    </style>
+
+    <style name="pb_load_dwon_newmenu" parent="@android:style/Animation.Dialog">
+        <item name="android:background">@color/transparent</item>
+    </style>
+
+    <style name="dwonload_progress_style" parent="@android:style/Widget.ProgressBar.Horizontal">
+        <item name="android:background">@color/White</item>
+        <item name="android:progressDrawable">@drawable/layout_progress_style</item>
+    </style>
+
+    <style name="FullBleedTheme" parent="@android:Theme.Light.NoTitleBar">
+        <!-- All customizations that are NOT specific to a particular API-level can go here. -->
+    </style>
+
+</resources>

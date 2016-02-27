@@ -1,0 +1,284 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/user_center"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent" >
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical" >
+
+        <RelativeLayout
+            android:id="@+id/top"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="#44c1c1"
+            android:gravity="center|left"
+            android:orientation="horizontal"
+            android:padding="10dp" >
+
+            <Button
+                android:id="@+id/button1"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentLeft="true"
+                android:layout_alignParentTop="true"
+                android:layout_marginLeft="10dp"
+                android:background="@color/transparent"
+                android:clickable="true"
+                android:drawableLeft="@drawable/navi_back_icon"
+                android:onClick="onBack"
+                android:text="返回"
+                android:textColor="#ffffff" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerInParent="true"
+                android:text="用户中心"
+                android:textColor="#ffffff" />
+
+            <TextView
+                android:id="@+id/tv_top_about"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentRight="true"
+                android:text="关于"
+                android:textColor="#ffffff" />
+        </RelativeLayout>
+
+        <LinearLayout
+            android:id="@+id/ll_user_unlogin"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="#ffffff"
+            android:gravity="center"
+            android:orientation="horizontal"
+            android:visibility="visible" >
+
+            <Button
+                android:id="@+id/bt_login"
+                android:layout_width="100dp"
+                android:layout_height="30dp"
+                android:layout_margin="10dp"
+                android:background="#44c1c1"
+                android:text="登录"
+                android:textColor="#ffffff" />
+
+            <Button
+                android:id="@+id/bt_register"
+                android:layout_width="100dp"
+                android:layout_height="30dp"
+                android:layout_margin="10dp"
+                android:background="#44c1c1"
+                android:text="注册"
+                android:textColor="#ffffff" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/ll_user_login"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="#ffffff"
+            android:gravity="center|top"
+            android:orientation="vertical"
+            android:visibility="gone" >
+
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="10dp"
+                android:layout_marginRight="10dp" >
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center|left"
+                    android:orientation="vertical" >
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="140dp"
+                        android:gravity="center"
+                        android:orientation="horizontal"
+                         >
+
+                        <RelativeLayout
+                            android:layout_width="100dp"
+                            android:layout_height="100dp" >
+
+                            <ImageView
+                                android:id="@+id/ic_user_icon"
+                                android:layout_width="100dp"
+                                android:layout_height="100dp"
+                                android:adjustViewBounds="true"
+                                android:background="@drawable/username_edit_icon" />
+
+                            <ProgressBar
+                                android:id="@+id/pb_upload_face"
+                                style="@android:style/Widget.Holo.Light.ProgressBar.Large"
+                                android:layout_width="100dp"
+                                android:layout_height="100dp"
+                                android:layout_centerHorizontal="true"
+                                android:layout_centerInParent="true"
+                                android:visibility="gone" />
+
+                            <TextView
+                                android:id="@+id/tv_p_"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_centerHorizontal="true"
+                                android:layout_centerInParent="true"
+                                android:gravity="center"
+                                android:visibility="gone" />
+                        </RelativeLayout>
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:layout_marginTop="10dp"
+                            android:layout_marginLeft="10dp"
+                            android:gravity="center|left"
+                            android:orientation="vertical" >
+
+                            <LinearLayout
+                                android:layout_width="wrap_content"
+                                android:layout_height="30dp"
+                                android:orientation="horizontal" >
+
+                                <TextView
+                                    android:id="@+id/textView1"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="用户名：" />
+
+                                <TextView
+                                    android:id="@+id/tv_user_name"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:ellipsize="marquee"
+                                    android:maxLength="10"
+                                    android:singleLine="true"
+                                    android:text="张三" />
+                            </LinearLayout>
+
+                            <View
+                                android:layout_width="match_parent"
+                                android:layout_height="1dp"
+                                android:background="#eeeeee" />
+
+                            <LinearLayout
+                                android:layout_width="wrap_content"
+                                android:layout_height="30dp"
+                                android:gravity="center"
+                                android:orientation="horizontal" >
+
+                                <TextView
+                                    android:id="@+id/textView3"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="积\t分：" />
+
+                                <TextView
+                                    android:id="@+id/tv_user_score"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:ellipsize="marquee"
+                                    android:maxLength="10"
+                                    android:singleLine="true"
+                                    android:text="55" />
+                            </LinearLayout>
+
+                            <View
+                                android:layout_width="match_parent"
+                                android:layout_height="1dp"
+                                android:background="#eeeeee" />
+
+                            <LinearLayout
+                                android:layout_width="wrap_content"
+                                android:layout_height="30dp"
+                                android:gravity="center"
+                                android:orientation="horizontal" >
+
+                                <TextView
+                                    android:id="@+id/textView2"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="笔\t名：" />
+
+                                <TextView
+                                    android:id="@+id/tv_uname"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="天心" />
+                            </LinearLayout>
+
+                            <View
+                                android:layout_width="match_parent"
+                                android:layout_height="1dp"
+                                android:background="#ffffff" />
+                        </LinearLayout>
+                    </LinearLayout>
+
+                    <Button
+                        android:id="@+id/bt_bm"
+                        android:layout_width="match_parent"
+                        android:layout_height="40dp"
+                        android:background="#eeeeeeee"
+                        android:drawableRight="@drawable/right"
+                        android:gravity="left|center"
+                        android:padding="5dp"
+                        android:text="我的书签" />
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:background="#ffffff" />
+
+                    <Button
+                        android:id="@+id/bt_mp"
+                        android:layout_width="match_parent"
+                        android:layout_height="40dp"
+                        android:background="#eeeeeeee"
+                        android:drawableRight="@drawable/right"
+                        android:gravity="left|center"
+                        android:padding="5dp"
+                        android:text="我的发表" />
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:background="#ffffff" />
+
+                    <TextView
+                        android:id="@+id/tv_about"
+                        android:layout_width="match_parent"
+                        android:layout_height="40dp"
+                        android:background="#eeeeeeee"
+                        android:drawableRight="@drawable/right"
+                        android:gravity="left|center"
+                        android:padding="5dp"
+                        android:text="关于我们"
+                        android:textColor="@color/Black" />
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:background="#ffffff" />
+
+                    <Button
+                        android:id="@+id/bt_logout"
+                        android:layout_width="match_parent"
+                        android:layout_height="40dp"
+                        android:background="#eeeeeeee"
+                        android:drawableRight="@drawable/right"
+                        android:gravity="left|center"
+                        android:padding="5dp"
+                        android:text="注销登录" />
+                </LinearLayout>
+            </RelativeLayout>
+        </LinearLayout>
+    </LinearLayout>
+
+</FrameLayout>

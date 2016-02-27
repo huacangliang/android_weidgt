@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#55555555"
+    android:gravity="center|bottom"
+    android:orientation="vertical" >
+
+    <TextView
+        android:id="@+id/line"
+        android:layout_width="match_parent"
+        android:layout_height="0.1dp"
+        android:layout_above="@+id/albums"
+        android:layout_marginLeft="10dp"
+        android:layout_marginRight="10dp"
+        android:background="#b16921" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:layout_marginLeft="10dp"
+        android:layout_marginRight="10dp"
+        android:background="@drawable/setting_up_selector"
+        android:clickable="true"
+        android:gravity="center"
+        android:onClick="onCamer"
+        android:text="相机" />
+
+    <TextView
+        android:id="@+id/line"
+        android:layout_width="match_parent"
+        android:layout_height="0.1dp"
+        android:layout_above="@+id/albums"
+        android:layout_marginLeft="10dp"
+        android:layout_marginRight="10dp"
+        android:background="#b16921" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:layout_marginLeft="10dp"
+        android:layout_marginRight="10dp"
+        android:background="@drawable/setting_down_selector"
+        android:clickable="true"
+        android:gravity="center"
+        android:onClick="onTicket"
+        android:text="相册" />
+
+    <LinearLayout
+        android:id="@+id/cancel"
+        android:layout_width="match_parent"
+        android:layout_height="45dp"
+        android:layout_alignParentBottom="true"
+        android:layout_margin="10dp"
+        android:background="@drawable/setting_one_selector" >
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:clickable="true"
+            android:gravity="center"
+            android:onClick="onCancel"
+            android:text="取消" />
+    </LinearLayout>
+
+</LinearLayout>

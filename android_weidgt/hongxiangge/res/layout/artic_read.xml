@@ -1,0 +1,222 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#ffffff"
+    android:fitsSystemWindows="true" >
+
+    <RelativeLayout
+        android:id="@+id/top"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:background="#44c1c1"
+        android:gravity="center|left"
+        android:orientation="horizontal"
+        android:padding="10dp" >
+
+        <Button
+            android:id="@+id/button1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentTop="true"
+            android:layout_marginLeft="10dp"
+            android:background="@color/transparent"
+            android:clickable="true"
+            android:drawableLeft="@drawable/navi_back_icon"
+            android:onClick="onBack"
+            android:text="返回"
+            android:textColor="#ffffff" />
+
+        <TextView
+            android:id="@+id/tv_title"
+            android:layout_width="150dp"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:ellipsize="end"
+            android:gravity="center"
+            android:singleLine="true"
+            android:text="标题"
+            android:textColor="#ffffff" />
+
+        <TextView
+            android:id="@+id/tv_set"
+            android:layout_width="wrap_content"
+            android:layout_height="20dp"
+            android:layout_alignBottom="@+id/button1"
+            android:layout_alignParentRight="true"
+            android:text="设置"
+            android:textColor="#ffffff" />
+    </RelativeLayout>
+
+    <com.handmark.pulltorefresh.library.PullToRefreshScrollView
+        android:id="@+id/sc_content"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@id/top"
+        android:layout_marginBottom="60dp"
+        android:overScrollMode="never"
+        android:scrollbars="none" >
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_margin="10dp"
+            android:orientation="vertical" 
+            android:id="@+id/ll_data">
+
+            <LinearLayout
+                android:id="@+id/adLayout"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:minHeight="50dp"
+                android:layout_below="@id/top"
+                android:layout_gravity="center"
+                android:gravity="center_horizontal"
+                android:orientation="horizontal" >
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal" >
+
+                <TextView
+                    android:id="@+id/textView1"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="作者：" />
+
+                <TextView
+                    android:id="@+id/tv_artic_author"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:ellipsize="middle"
+                    android:maxWidth="60dp"
+                    android:singleLine="true"
+                    android:text="张三" />
+
+                <TextView
+                    android:id="@+id/textView2"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="10dp"
+                    android:text="日期：" />
+
+                <TextView
+                    android:id="@+id/tv_artic_time"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="10dp"
+                    android:text="2012-02-13 12:12:34" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="10dp"
+                android:layout_marginTop="10dp"
+                android:orientation="horizontal" >
+
+                <TextView
+                    android:id="@+id/textView4"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="分类：" />
+
+                <TextView
+                    android:id="@+id/tv_type"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginRight="5dp"
+                    android:text="默认" />
+
+                <TextView
+                    android:id="@+id/textView3"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="点击率：" />
+
+                <TextView
+                    android:id="@+id/tv_click"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:ellipsize="end"
+                    android:singleLine="true"
+                    android:text="1024人次" />
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/tv_content_title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_margin="10dp"
+                android:text="title"
+                android:textSize="20sp" />
+
+            <WebView
+                android:id="@+id/wv_content"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@color/transparent" />
+        </LinearLayout>
+    </com.handmark.pulltorefresh.library.PullToRefreshScrollView>
+
+    <LinearLayout
+        android:id="@+id/ll_set"
+        android:layout_width="80dp"
+        android:layout_height="wrap_content"
+        android:layout_alignParentRight="true"
+        android:layout_below="@id/top"
+        android:background="@color/Gray"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:visibility="gone" >
+
+        <Button
+            android:id="@+id/bt_add_book"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="2dp"
+            android:background="@color/White"
+            android:padding="10dp"
+            android:text="设为书签" />
+
+        <Button
+            android:id="@+id/bt_setting_font"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="2dp"
+            android:background="@color/White"
+            android:padding="10dp"
+            android:text="设置字体" />
+
+        <Button
+            android:id="@+id/bt_choice_bg"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="2dp"
+            android:background="@color/White"
+            android:padding="10dp"
+            android:text="选择背景" />
+
+        <Button
+            android:id="@+id/bt_choice_fullscreen"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="2dp"
+            android:background="@color/White"
+            android:padding="10dp"
+            android:text="全屏模式" />
+    </LinearLayout>
+
+    <SeekBar
+        android:id="@+id/sb_font_change"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_centerVertical="true"
+        android:visibility="gone" />
+
+</RelativeLayout>

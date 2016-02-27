@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical" >
+
+    <RelativeLayout
+        android:id="@+id/top"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="#44c1c1"
+        android:padding="10dp" >
+
+        <Button
+            android:id="@+id/button1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentTop="true"
+            android:layout_marginLeft="10dp"
+            android:background="@color/transparent"
+            android:clickable="true"
+            android:drawableLeft="@drawable/navi_back_icon"
+            android:onClick="onBack"
+            android:text="返回"
+            android:textColor="#ffffff" />
+
+        <TextView
+            android:id="@+id/tv_title"
+            android:layout_width="150dp"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:ellipsize="end"
+            android:gravity="center"
+            android:singleLine="true"
+            android:text="搜索文章"
+            android:textColor="#ffffff" />
+    </RelativeLayout>
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="#cccccc"
+        android:orientation="vertical" >
+
+        <EditText
+            android:id="@+id/et_search"
+            style="@style/equi_edit"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="10dp"
+            android:ems="10"
+            android:hint="我要搜索"
+            android:imeOptions="actionSearch"
+            android:paddingRight="5dp"
+            android:singleLine="true" >
+
+            <requestFocus />
+        </EditText>
+
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentRight="true"
+            android:layout_marginRight="15dp"
+            android:layout_marginTop="12dp"
+            android:background="@drawable/rc_ic_atfriend_search"
+            android:clickable="true"
+            android:onClick="onSearch" />
+    </RelativeLayout>
+
+    <ListView
+        android:id="@+id/lv_search_mian"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_margin="10dp"
+        android:background="@color/White"
+        android:gravity="center"
+        android:scrollbars="none" >
+    </ListView>
+
+</LinearLayout>
