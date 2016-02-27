@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <color name="lightblack">#ff202020</color>
+    <color name="White">#FFFFFF</color>
+    <color name="Red">#FF0000</color>
+    <color name="DarkRed">#aa1313</color>
+    <color name="Black">#000000</color>
+    <color name="Blue">#1c4773</color>
+    <color name="Green">#037c22</color>
+    <color name="Yellow">#ffff00</color>
+    <color name="Gray">#999999</color>
+    <color name="GrayTwo">#aaaaaa</color>
+    <color name="orange">#FF7C08</color>
+    <color name="transparent">#00000000</color>
+    <color name="footerbac">#fff7ea</color>
+    <color name="font_net_menu_color">#666600</color>
+    <color name="Gray_footertext">#8c827d</color>
+    <color name="siding_bcolor">#F8E7D3</color>
+    <color name="search_key_color">#E3D8C6</color>
+    
+    <color name="about_text2">#64554e</color>
+    <color name="version_text">#837872</color>
+
+
+    <!-- drop down list header font color -->
+    <color name="drop_down_list_header_font_color">#000000</color>
+    <!-- drop down list header second font color -->
+    <color name="drop_down_list_header_second_font_color">#000000</color>
+    <!-- drop down list footer font color -->
+    <color name="drop_down_list_footer_font_color">#000000</color>
+    
+    <color name="main_blue_style">#0099d9</color>
+	<color name="blue_style">#44c1c1</color>
+</resources>

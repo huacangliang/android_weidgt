@@ -1,0 +1,341 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.hxgwx.www"
+    android:installLocation="auto"
+    android:versionCode="12"
+    android:versionName="v2.0" >
+
+    <uses-sdk
+        android:minSdkVersion="11"
+        android:targetSdkVersion="23" />
+
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.RUN_INSTRUMENTATION" />
+    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
+    <uses-permission android:name="android.permission.GET_TASKS" />
+    <uses-permission android:name="com.android.launcher.permission.INSTALL_SHORTCUT" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.VIBRATE" />
+    <uses-permission android:name="android.permission.WRITE_SETTINGS" />
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+    <uses-permission android:name="android.permission.CHANGE_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
+
+    <instrumentation
+        android:name="android.test.InstrumentationTestRunner"
+        android:label="Test for my app"
+        android:targetPackage="com.hxgwx.www" />
+
+    <application
+        android:name="com.hxgwx.www.HongxianggeApplication"
+        android:allowBackup="true"
+        android:hardwareAccelerated="true"
+        android:icon="@drawable/ic_launcher_web"
+        android:label="@string/app_name"
+        android:theme="@style/AppTheme" >
+        <meta-data
+            android:name="domain"
+            android:value="http://www.hxgwx.com" />
+        <meta-data
+            android:name="mmarket"
+            android:value="10130" >
+        </meta-data>
+        <meta-data
+            android:name="eoemarket"
+            android:value="10120" >
+        </meta-data>
+        <meta-data
+            android:name="mumayi"
+            android:value="10070" >
+        </meta-data>
+        <meta-data
+            android:name="nduoa"
+            android:value="10060" >
+        </meta-data>
+        <meta-data
+            android:name="owan"
+            android:value="10450" >
+        </meta-data>
+        <meta-data
+            android:name="gfan"
+            android:value="10020" >
+        </meta-data>
+        <meta-data
+            android:name="crossmo"
+            android:value="10300" >
+        </meta-data>
+        <meta-data
+            android:name="UMENG_APPKEY"
+            android:value="54d031a0fd98c5cf16000aef" >
+        </meta-data>
+        <meta-data
+            android:name="UMENG_CHANNEL"
+            android:value="Umeng" >
+        </meta-data>
+        <meta-data
+            android:name="UMENG_MESSAGE_SECRET"
+            android:value="9a7dc37faeeb042cc4946f54cf3a30fe" >
+        </meta-data>
+        <meta-data
+            android:name="changyan_AuthorizationCode"
+            android:value="https://changyan.sohu.com/api/oauth2/authorize" >
+        </meta-data>
+        <meta-data
+            android:name="changyan_AccessToken"
+            android:value="https://changyan.sohu.com/api/oauth2/token" />
+
+        <service
+            android:name="com.umeng.update.net.DownloadingService"
+            android:process=":DownloadingService" >
+        </service>
+
+        <activity
+            android:name="com.umeng.update.UpdateDialogActivity"
+            android:theme="@android:style/Theme.Translucent.NoTitleBar" >
+        </activity>
+        <!-- 监听通知点击或者忽略处理的广播 -->
+        <receiver
+            android:name="com.umeng.message.NotificationProxyBroadcastReceiver"
+            android:exported="false" >
+        </receiver>
+
+        <!-- 监听开机运行、网络连接变化、卸载的广播 -->
+        <receiver
+            android:name="com.umeng.message.SystemReceiver"
+            android:process=":push" >
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.net.conn.CONNECTIVITY_CHANGE" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.PACKAGE_REMOVED" />
+
+                <data android:scheme="package" />
+            </intent-filter>
+        </receiver>
+
+        <!-- 监听消息到达的广播 -->
+        <receiver
+            android:name="com.umeng.message.MessageReceiver"
+            android:process=":push" >
+            <intent-filter>
+                <action android:name="org.agoo.android.intent.action.RECEIVE" />
+            </intent-filter>
+        </receiver>
+
+        <!-- 监听宿主选举的广播 -->
+        <receiver
+            android:name="com.umeng.message.ElectionReceiver"
+            android:process=":push" >
+            <intent-filter>
+                <action android:name="org.agoo.android.intent.action.ELECTION_RESULT_V4" />
+
+                <category android:name="umeng" />
+            </intent-filter>
+        </receiver>
+
+        <!-- 监听注册的广播 -->
+        <!-- 【应用包名】字符串需要替换成本应用的应用包名 -->
+        <receiver
+            android:name="com.umeng.message.RegistrationReceiver"
+            android:exported="false" >
+            <intent-filter>
+                <action android:name="com.hxgwx.www.intent.action.COMMAND" />
+            </intent-filter>
+        </receiver>
+        <receiver android:name="com.umeng.message.UmengMessageBootReceiver" >
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+            </intent-filter>
+        </receiver>
+        <!-- Umeng的长连服务，用来建立推送的长连接的 -->
+        <!-- 【应用包名】字符串需要替换成本应用的应用包名 -->
+        <service
+            android:name="com.umeng.message.UmengService"
+            android:exported="true"
+            android:label="PushService"
+            android:process=":push" >
+            <intent-filter>
+                <action android:name="com.hxgwx.www.intent.action.START" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="com.hxgwx.www.intent.action.COCKROACH" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="org.agoo.android.intent.action.PING_V4" />
+
+                <category android:name="umeng" />
+            </intent-filter>
+        </service>
+
+        <!-- Umeng的消息接收服务 -->
+        <service
+            android:name="com.umeng.message.UmengIntentService"
+            android:process=":push" />
+
+        <!-- Umeng的消息路由服务 -->
+        <service
+            android:name="com.umeng.message.UmengMessageIntentReceiverService"
+            android:exported="true"
+            android:process=":push" >
+            <intent-filter>
+                <action android:name="org.android.agoo.client.MessageReceiverService" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="org.android.agoo.client.ElectionReceiverService" />
+            </intent-filter>
+        </service>
+
+        <!-- v2.4.1添加的Service，Umeng的消息接收后的处理服务 -->
+        <service
+            android:name="com.umeng.message.UmengMessageCallbackHandlerService"
+            android:exported="false" >
+            <intent-filter>
+                <action android:name="com.umeng.messge.registercallback.action" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="com.umeng.message.unregistercallback.action" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="com.umeng.message.message.handler.action" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="com.umeng.message.autoupdate.handler.action" />
+            </intent-filter>
+        </service>
+
+        <!-- V1.3.0添加的service，负责下载通知的资源 -->
+        <service android:name="com.umeng.message.UmengDownloadResourceService" />
+        <!-- 友盟配置结束 -->
+        <activity
+            android:name="net.youmi.android.AdBrowser"
+            android:configChanges="keyboard|keyboardHidden|orientation|screenSize"
+            android:theme="@android:style/Theme.Light.NoTitleBar" >
+        </activity>
+
+        <service android:name="net.youmi.android.AdService" >
+        </service>
+
+        <receiver android:name="net.youmi.android.AdReceiver" >
+            <intent-filter>
+                <action android:name="android.intent.action.PACKAGE_ADDED" />
+
+                <data android:scheme="package" />
+            </intent-filter>
+        </receiver>
+
+        <!-- 畅言配置开始 -->
+        <!-- 评论列表界面 -->
+        <activity android:name="com.sohu.cyan.android.sdk.activity.CyanCommentActivity" />
+        <!-- 发表评论页面 -->
+        <activity android:name="com.sohu.cyan.android.sdk.activity.CyanPostCommentActivity" />
+        <!-- 社会化账号登录界面 -->
+        <activity android:name="com.sohu.cyan.android.sdk.activity.OAuthActivity" >
+        </activity>
+        <!-- 畅言配置结束 -->
+        <activity
+            android:name="com.hxgwx.www.activity.LoadingActivity"
+            android:screenOrientation="portrait"
+            android:theme="@android:style/Theme.Light.NoTitleBar.Fullscreen"
+            android:windowSoftInputMode="adjustUnspecified|stateHidden" >
+            <intent-filter android:icon="@drawable/ic_launcher_web" >
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name="com.hxgwx.www.activity.LoginActivity"
+            android:screenOrientation="portrait"
+            android:theme="@style/FullBleedTheme"
+            android:windowSoftInputMode="adjustUnspecified|stateHidden" >
+        </activity>
+        <activity
+            android:name="com.hxgwx.www.activity.RegisterActivity"
+            android:screenOrientation="portrait"
+            android:theme="@style/FullBleedTheme"
+            android:windowSoftInputMode="adjustUnspecified|stateHidden" >
+        </activity>
+        <activity
+            android:name="com.hxgwx.www.activity.MainFragmentActivity"
+            android:screenOrientation="portrait"
+            android:theme="@style/FullBleedTheme"
+            android:windowSoftInputMode="adjustUnspecified|stateHidden" >
+        </activity>
+        <activity
+            android:name="com.hxgwx.www.activity.AboutActivity"
+            android:screenOrientation="portrait"
+            android:theme="@style/FullBleedTheme" >
+        </activity>
+        <activity
+            android:name="com.hxgwx.www.activity.WriterActivity"
+            android:screenOrientation="portrait"
+            android:theme="@style/FullBleedTheme"
+            android:windowSoftInputMode="adjustNothing" >
+        </activity>
+        <activity
+            android:name="com.hxgwx.www.activity.ReadActivity"
+            android:screenOrientation="portrait"
+            android:theme="@style/FullBleedTheme" >
+        </activity>
+        <activity
+            android:name="com.hxgwx.www.activity.ArcTypeListActivity"
+            android:screenOrientation="portrait"
+            android:theme="@style/FullBleedTheme" >
+        </activity>
+        <activity
+            android:name="com.hxgwx.www.activity.PostCommentActivity"
+            android:screenOrientation="portrait"
+            android:theme="@style/FullBleedTheme" >
+        </activity>
+        <activity
+            android:name="com.hxgwx.www.activity.CommentActivity"
+            android:screenOrientation="portrait"
+            android:theme="@style/FullBleedTheme" >
+        </activity>
+        <activity
+            android:name="com.hxgwx.www.activity.ReplyActivity"
+            android:screenOrientation="portrait"
+            android:theme="@style/FullBleedTheme" >
+        </activity>
+        <activity
+            android:name="com.hxgwx.www.activity.BookMarkActivity"
+            android:screenOrientation="portrait"
+            android:theme="@style/FullBleedTheme" >
+        </activity>
+        <activity
+            android:name="com.hxgwx.www.activity.MyPublicActivity"
+            android:screenOrientation="portrait"
+            android:theme="@style/FullBleedTheme" >
+        </activity>
+        <activity
+            android:name="com.hxgwx.www.activity.SearchActivity"
+            android:screenOrientation="portrait"
+            android:theme="@style/FullBleedTheme" >
+        </activity>
+        <activity
+            android:name="com.hxgwx.www.activity.FullScreenWebViewActivity"
+            android:screenOrientation="portrait"
+            android:theme="@android:style/Theme.NoTitleBar.Fullscreen" >
+        </activity>
+        <activity
+            android:name="com.hxgwx.www.activity.NewActivity"
+            android:screenOrientation="portrait"
+            android:theme="@style/FullBleedTheme" >
+        </activity>
+        <activity
+            android:name="com.hxgwx.www.activity.ChoiceImageActivity"
+            android:screenOrientation="portrait"
+            android:theme="@android:style/Theme.Translucent.NoTitleBar" >
+        </activity>
+    </application>
+
+</manifest>

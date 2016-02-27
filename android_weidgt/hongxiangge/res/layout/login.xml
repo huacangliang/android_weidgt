@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#eeeeeeee"
+    android:orientation="vertical"
+    android:fitsSystemWindows="true" >
+
+    <RelativeLayout
+        android:id="@+id/top"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="#44c1c1"
+        android:gravity="center|left"
+        android:orientation="horizontal"
+        android:padding="10dp" >
+
+        <Button
+            android:id="@+id/button1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentTop="true"
+            android:layout_marginLeft="10dp"
+            android:background="@color/transparent"
+            android:clickable="true"
+            android:drawableLeft="@drawable/navi_back_icon"
+            android:onClick="onBack"
+            android:text="返回"
+            android:textColor="#ffffff" />
+
+        <Button
+            android:id="@+id/button2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentRight="true"
+            android:background="@color/transparent"
+            android:clickable="true"
+            android:onClick="onRegister"
+            android:text="注册"
+            android:textColor="#ffffff" />
+    </RelativeLayout>
+
+    <ImageView
+        android:id="@+id/imageView1"
+        android:layout_width="250dp"
+        android:layout_height="140dp"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentRight="true"
+        android:layout_below="@+id/top"
+        android:onClick="onLook"
+        android:clickable="true"
+        android:background="@drawable/logo" />
+
+    <Button
+        android:id="@+id/bt_login"
+        style="@style/equi_edit"
+        android:layout_width="250dp"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/et_input_pwd"
+        android:layout_alignRight="@+id/et_input_pwd"
+        android:layout_below="@+id/et_input_pwd"
+        android:layout_marginTop="37dp"
+        android:background="#44c1c1"
+        android:clickable="true"
+        android:onClick="onLogin"
+        android:padding="10dp"
+        android:text="登录"
+        android:textColor="@color/Black"
+        android:textSize="20sp" />
+
+    <EditText
+        android:id="@+id/et_input_user"
+        style="@style/equi_edit"
+        android:layout_width="200dp"
+        android:layout_height="40dp"
+        android:layout_below="@+id/imageView1"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="28dp"
+        android:ems="10"
+        android:hint="请输入用户名"
+        android:singleLine="true" />
+
+    <EditText
+        android:id="@+id/et_input_pwd"
+        style="@style/equi_edit"
+        android:layout_width="200dp"
+        android:layout_height="40dp"
+        android:layout_alignLeft="@+id/et_input_user"
+        android:layout_below="@+id/et_input_user"
+        android:layout_marginTop="16dp"
+        android:ems="10"
+        android:hint="请输入密码"
+        android:inputType="textPassword"
+        android:singleLine="true" >
+    </EditText>
+
+    <TextView
+        android:id="@+id/tv_ask_pwd"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignRight="@+id/bt_login"
+        android:layout_below="@+id/bt_login"
+        android:layout_marginRight="0dp"
+        android:layout_marginTop="20dp"
+        android:text="忘记密码？" />
+
+    <CheckBox
+        android:id="@+id/rb_remenber_pwd"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBaseline="@+id/tv_ask_pwd"
+        android:layout_alignBottom="@+id/tv_ask_pwd"
+        android:layout_alignLeft="@+id/bt_login"
+        android:text="记住密码"
+        android:textColor="@color/Black"
+         />
+
+</RelativeLayout>
