@@ -1,9 +1,0 @@
-Manifest-Version: 1.0
-Bundle-ManifestVersion: 2
-Bundle-Name: AsynTask2
-Bundle-SymbolicName: AsynTask2
-Bundle-Version: 1.0.0.qualifier
-Export-Package: com.jingzhong.asyntask2,
- com.jingzhong.asyntask2.annotation,
- com.jingzhong.asyntask2.ui,
- com.jingzhong.asyntask2.utils
