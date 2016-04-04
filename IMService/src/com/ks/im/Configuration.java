@@ -4,7 +4,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class Configuration {
-	//public static final String SERVERIP="192.168.0.6";
+	public static final String SERVERIP="192.168.0.6";
 	public static final int SERVERPORT=9010;
 	public static final int BUFFERLENGTH=64*1000;
 	public static final int RETRYWRITECOUNT=5;
