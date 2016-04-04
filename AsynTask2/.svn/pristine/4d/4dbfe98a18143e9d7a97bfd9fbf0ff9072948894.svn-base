@@ -1,0 +1,915 @@
+package com.jingzhong.asyntask2.utils;
+
+import java.io.BufferedReader;
+import java.io.ByteArrayOutputStream;
+import java.io.DataOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.net.HttpURLConnection;
+import java.net.InetAddress;
+import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URL;
+import java.net.URLDecoder;
+import java.net.UnknownHostException;
+import java.nio.charset.Charset;
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
+
+import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.KeyManager;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSession;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
+
+import org.apache.http.Header;
+import org.apache.http.HttpResponse;
+import org.apache.http.HttpStatus;
+import org.apache.http.NameValuePair;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.params.ClientPNames;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.message.BasicNameValuePair;
+import org.apache.http.params.CoreConnectionPNames;
+import org.apache.http.protocol.BasicHttpContext;
+import org.apache.http.protocol.HTTP;
+
+import android.content.Context;
+import android.net.wifi.WifiInfo;
+import android.net.wifi.WifiManager;
+import android.os.StrictMode;
+import android.text.TextUtils;
+import android.util.Log;
+
+import com.squareup.okhttp.OkHttpClient;
+
+/**
+ * 
+ * @author dengzhijiang
+ * 
+ */
+public class HttpUtils {
+	private final static int BUFFER_SIZE = 1024;
+	private static String TAG = "HttpUtils";
+
+	public static HttpUtils getInstance() {
+		return new HttpUtils();
+	}
+
+	/**
+	 * 文件下载长度
+	 */
+	public int fialeLenth = 0;
+	public static final String USER_AGENT = "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; SV1; QQDownload 1.7; .NET CLR 1.1.4322; CIBA; .NET CLR 2.0.50727)";
+
+	public static String sendPostResquest(String path) throws Exception {
+		String resContent = null;
+		InputStream in = null;
+		HttpPost httpGet = new HttpPost(path);
+		DefaultHttpClient httpClient = new DefaultHttpClient();
+		try {
+			HttpResponse httpResponse = httpClient.execute(httpGet);
+			int reponseCode = httpResponse.getStatusLine().getStatusCode();
+			if (reponseCode == HttpStatus.SC_OK) {
+				in = httpResponse.getEntity().getContent();
+				resContent = InputStreamTOString(in);
+			}
+		} finally {
+			if (in != null)
+				in.close();
+		}
+		return resContent;
+	}
+
+	public static String InputStreamTOString(InputStream in) throws Exception {
+		ByteArrayOutputStream outStream = new ByteArrayOutputStream();
+		byte[] data = new byte[BUFFER_SIZE];
+		int count = -1;
+		while ((count = in.read(data, 0, BUFFER_SIZE)) != -1)
+			outStream.write(data, 0, count);
+
+		return new String(outStream.toByteArray(), "utf-8");
+	}
+
+	public static String executeHttpGet(String path) {
+		String result = null;
+		URL url = null;
+		HttpURLConnection connection = null;
+		InputStreamReader in = null;
+		try {
+			url = new URL(path);
+			connection = (HttpURLConnection) url.openConnection();
+			in = new InputStreamReader(connection.getInputStream());
+			BufferedReader bufferedReader = new BufferedReader(in);
+			StringBuffer strBuffer = new StringBuffer();
+			String line = null;
+			while ((line = bufferedReader.readLine()) != null) {
+				strBuffer.append(line);
+			}
+			result = strBuffer.toString();
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally {
+			if (connection != null) {
+				connection.disconnect();
+			}
+			if (in != null) {
+				try {
+					in.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+
+		}
+		return result;
+	}
+
+	public static String executePost(String url, Map<String, String> map)
+			throws Exception {
+		List<NameValuePair> postParameters = new ArrayList<NameValuePair>();
+		Set<String> keySet = map.keySet();
+		for (String key : keySet) {
+			postParameters.add(new BasicNameValuePair(key, map.get(key)));
+		}
+		return executePost(url, postParameters);
+	}
+
+	public static String executePost2(String url, Map<String, String> map)
+			throws Exception {
+		List<NameValuePair> postParameters = new ArrayList<NameValuePair>();
+		Set<String> keySet = map.keySet();
+		for (String key : keySet) {
+			postParameters.add(new BasicNameValuePair(key, map.get(key)));
+		}
+		return executePost2(url, postParameters);
+	}
+
+	public static String executePost2(String url,
+			List<NameValuePair> postParameters) throws Exception {
+		String result = null;
+		BufferedReader reader = null;
+		try {
+			HttpClient client = new DefaultHttpClient();
+			HttpPost request = new HttpPost();
+			request.setURI(new URI(url));
+			UrlEncodedFormEntity formEntity = new UrlEncodedFormEntity(
+					postParameters, HTTP.UTF_8);
+			request.setEntity(formEntity);
+
+			HttpResponse response = client.execute(request);
+			byte[] readInput = readInput(response.getEntity().getContent());
+			String string = new String(readInput);
+
+			// reader = new BufferedReader(new InputStreamReader(response
+			// .getEntity().getContent(), "utf-8"));
+			//
+			// StringBuffer strBuffer = new StringBuffer();
+			// String line = null;
+			// while ((line = reader.readLine()) != null) {
+			// strBuffer.append(line);
+			// }
+			// result = strBuffer.toString();
+			result = string;
+
+		} catch (Exception e) {
+			throw new Exception();
+		} finally {
+			if (reader != null) {
+				try {
+					reader.close();
+					reader = null;
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+		}
+
+		return result;
+	}
+
+	/**
+	 * @deprecated 这是一个特殊方法，执行特殊任务，所以任何人都不应该使用该方法
+	 * @param url
+	 * @param postParameters
+	 * @return
+	 * @throws Exception
+	 */
+	public static String executePost(String url,
+			List<NameValuePair> postParameters) throws Exception {
+		String result = null;
+		BufferedReader reader = null;
+		try {
+			HttpClient client = new DefaultHttpClient();
+			HttpPost request = new HttpPost();
+			request.setURI(new URI(url));
+			UrlEncodedFormEntity formEntity = new UrlEncodedFormEntity(
+					postParameters, HTTP.UTF_8);
+			request.setEntity(formEntity);
+
+			HttpResponse response = client.execute(request);
+			byte[] readInput = readInput(response.getEntity().getContent());
+			String string = new String(readInput);
+
+			// reader = new BufferedReader(new InputStreamReader(response
+			// .getEntity().getContent(), "utf-8"));
+
+			StringBuffer strBuffer = new StringBuffer();
+			// String line = null;
+			// while ((line = reader.readLine()) != null) {
+			// strBuffer.append(line);
+			// }
+			// result = strBuffer.toString();
+			result = string;
+			// if(result.length() == 2){
+			// if(charArray[0] == 65279){
+			// result = charArray[1]+"";
+			// }
+			// }
+
+			char[] charArray = result.toCharArray();
+			for (int i = 0; i < charArray.length; i++) {
+				if (charArray[i] != 65279) {
+					strBuffer.append(new String(charArray, i,
+							charArray.length - 1));
+					break;
+				}
+			}
+			result = strBuffer.toString();
+			result = result.replace("<?xml version='1.0' encoding='utf-8'?>",
+					"");
+
+		} catch (Exception e) {
+			throw new Exception();
+		} finally {
+			if (reader != null) {
+				try {
+					reader.close();
+					reader = null;
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+		}
+
+		return result;
+	}
+
+	public static byte[] readInput(InputStream in) throws IOException {
+		ByteArrayOutputStream out = new ByteArrayOutputStream();
+		int len = 0;
+		byte[] buffer = new byte[1024];
+		while ((len = in.read(buffer)) > 0) {
+			out.write(buffer, 0, len);
+		}
+		out.close();
+		in.close();
+		return out.toByteArray();
+	}
+
+	public static String getWifiName(Context context) {
+		WifiManager mWifi = (WifiManager) context
+				.getSystemService(Context.WIFI_SERVICE);
+		WifiInfo wifi = mWifi.getConnectionInfo();
+		String name = wifi.getSSID();
+		if (name != null)
+			name = name.replace("\"", "");
+
+		return name;
+
+	}
+
+	public static InetAddress getIpForName(String domain) {
+		try {
+			InetAddress[] server = InetAddress.getAllByName(domain);
+			for (InetAddress inetAddress : server) {
+				return inetAddress;
+			}
+		} catch (UnknownHostException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+		return null;
+
+	}
+
+	public static boolean ping(String ip) {
+
+		if (TextUtils.isEmpty(ip)) {
+			Log.e("ping", "ip not null");
+			return false;
+		} else {
+
+			String line = null;
+			try {
+				Process pro = Runtime.getRuntime().exec("ping " + ip);
+				BufferedReader buf = new BufferedReader(new InputStreamReader(
+						pro.getInputStream()));
+				while ((line = buf.readLine()) != null)
+					System.out.println(line);
+			} catch (Exception ex) {
+				Log.e("ping", ex.getMessage());
+			}
+
+		}
+		return false;
+
+	}
+
+	public static boolean testNet(String ip) {
+		InetAddress inet = null;
+		try {
+			inet = InetAddress.getByName(ip);
+			if (inet.getHostAddress() != null) {
+				Log.i("testNet", ip);
+				return true;
+			} else {
+				Log.i("testNet", "true");
+			}
+		} catch (UnknownHostException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+		return false;
+	}
+
+	public static final String RESULT = "inputstream";
+
+	public static final String RESULTLENGTH = "length";
+
+	public Map<String, Object> exeGet(String url) {
+		boolean error = false;
+		HttpClient http = new DefaultHttpClient();
+		HttpGet get = new HttpGet(url);
+		get.addHeader("User-Agent", USER_AGENT);
+		// 请求超时
+		http.getParams().setParameter(CoreConnectionPNames.CONNECTION_TIMEOUT,
+				5000);
+		// 读取超时
+		http.getParams().setParameter(CoreConnectionPNames.SO_TIMEOUT, 5000);
+		http.getParams().setParameter(ClientPNames.ALLOW_CIRCULAR_REDIRECTS,
+				true);
+		HttpResponse response;
+		try {
+			response = http.execute(get, new BasicHttpContext());
+			int code = response.getStatusLine().getStatusCode();
+			if (code == 200) {
+				fialeLenth = (int) response.getEntity().getContentLength();
+				if (fialeLenth < 0) {
+					Header[] headers = response.getHeaders("Content-Length");
+					if (headers.length > 0) {
+						fialeLenth = Integer.parseInt(headers[0].getValue());
+					}
+				}
+				Map<String, Object> map = null;
+
+				map = new HashMap<String, Object>();
+				map.put("inputstream", response.getEntity().getContent());
+				map.put("length", fialeLenth);
+
+				return map;
+			} else {
+				if (onNetListenear != null) {
+					onNetListenear.onlistenear(code);
+				}
+
+			}
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			error = true;
+		} finally {
+			if (http != null) {
+				http.getConnectionManager().closeExpiredConnections();
+			}
+		}
+
+		if (error) {
+			InputStream res;
+			try {
+				res = netTool(url);
+				if (res == null)
+					return null;
+				HashMap<String, Object> map = new HashMap<String, Object>();
+				map.put("inputstream", res);
+				map.put("length", fialeLenth);
+				return map;
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+
+		}
+
+		return null;
+
+	}
+
+	/**
+	 * @param netUri
+	 *            网络访问工具
+	 * @return
+	 * @throws IOException
+	 */
+
+	public InputStream netTool(String netUri) throws IOException {
+		if (netUri == null) {
+			return null;
+		}
+		if (netUri.indexOf("http") < 0) {
+			return null;
+		}
+
+		// InetAddress inet=InetAddress.getByName(netUri);
+		//
+		// String ss=inet.getHostAddress();
+		// Log.i("input", ss);
+		// if (!HttpUtils.testNet(ss)) {
+		// return null;
+		// }
+
+		Log.i("netTool", netUri);
+		StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder()
+				.permitAll().build();
+		StrictMode.setThreadPolicy(policy);
+		InputStream inputStream = null;
+		URL url;
+		HttpURLConnection huc = null;
+		try {
+			url = new URL(netUri);
+
+			String host = url.getHost();
+			System.out.println("ip:" + host);
+			if (!HttpUtils.testNet(host)) {
+				return null;
+			}
+
+			huc = (HttpURLConnection) url.openConnection();
+
+			huc.setRequestProperty("accept", "*/*");
+			huc.setRequestProperty("connection", "Keep-Alive");// 网络持久连接
+			huc.setRequestProperty("user-agent",
+					"Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1;SV1)");
+			huc.setRequestProperty("Accept-Encoding", "identity");
+			if (url != null) {
+
+				Log.i(TAG, "getRequest");
+				huc.setConnectTimeout(2 * 5000);
+				huc.setRequestMethod("GET");
+				huc.setDoInput(true);
+				int responseCode = huc.getResponseCode();
+				if (responseCode == HttpURLConnection.HTTP_OK) {
+					Log.i(TAG, "getRequest-->ok");
+					inputStream = huc.getInputStream();
+					fialeLenth = huc.getContentLength();// 下载的文件大小
+
+				} else if (responseCode == HttpURLConnection.HTTP_CLIENT_TIMEOUT) {
+					// 超时
+					Log.i(TAG, "getRequest-->超时");
+
+				} else if (responseCode == HttpURLConnection.HTTP_BAD_GATEWAY) {
+					// �网络不正常
+					Log.i(TAG, "getRequest-->网络不正常");
+
+				} else if (responseCode == HttpURLConnection.HTTP_BAD_METHOD) {
+					// 请求方法不正确
+					Log.i(TAG, "getRequest-->请求方法不正确");
+
+				} else if (responseCode == HttpURLConnection.HTTP_NOT_FOUND) {
+					// 没有找到资源
+					Log.i(TAG, "getRequest-->没有找到资源");
+
+				} else {
+					Log.i(TAG, "getRequest-->未知错误");
+
+				}
+			}
+			if (inputStream != null) {
+				return inputStream;
+			}
+		} catch (MalformedURLException e) {
+
+			// 网络错误
+			e.printStackTrace();
+		} catch (IOException e) {
+			// io错误
+
+			e.printStackTrace();
+		} catch (Exception e) {
+
+			e.printStackTrace();
+		} finally {
+
+			if (huc != null) {
+				huc.disconnect();
+			}
+
+		}
+		return null;
+	}
+
+	public Map<String, Object> exeGet(String url, int seek) {
+		HttpClient http = new DefaultHttpClient();
+		HttpGet get = new HttpGet(url);
+		// 请求超时
+		http.getParams().setParameter(CoreConnectionPNames.CONNECTION_TIMEOUT,
+				5000);
+		// 读取超时
+		http.getParams().setParameter(CoreConnectionPNames.SO_TIMEOUT, 5000);
+		HttpResponse response;
+		try {
+			response = http.execute(get);
+			int code = response.getStatusLine().getStatusCode();
+			if (code == 200) {
+				fialeLenth = (int) response.getEntity().getContentLength();
+				if (fialeLenth < 0) {
+					Header[] headers = response.getHeaders("Content-Length");
+					if (headers.length > 0) {
+						fialeLenth = Integer.parseInt(headers[0].getValue());
+					}
+				}
+				Map<String, Object> map = null;
+				try {
+					map = new HashMap<String, Object>();
+					map.put("inputstream", response.getEntity().getContent()
+							.skip(seek));
+					map.put("length", fialeLenth);
+				} catch (Exception e) {
+					// TODO: handle exception
+					e.printStackTrace();
+				}
+				return map;
+			} else {
+				if (onNetListenear != null) {
+					onNetListenear.onlistenear(code);
+				}
+
+			}
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} finally {
+			if (http != null) {
+				http.getConnectionManager().closeExpiredConnections();
+			}
+		}
+
+		return null;
+
+	}
+
+	public Map<String, Object> exeHttp(Context context, String path,
+			Map<String, Object> params, String mothed) throws Exception {
+		if (path == null)
+			throw new NullPointerException("url null");
+
+		if (params == null)
+			params = new HashMap<String, Object>();
+
+		if (mothed == null)
+			mothed = "get";
+
+		HttpURLConnection conn = null;
+		OkHttpClient client = new OkHttpClient();
+		URL url = new URL(path);
+
+		InputStream is = null;
+		Map<String, Object> res = new HashMap<String, Object>();
+		if (mothed.equalsIgnoreCase("get")) {
+			String p = "";
+
+			Set<String> keys = params.keySet();
+			Iterator<String> it = keys.iterator();
+			while (it.hasNext()) {
+				String key = it.next();
+				String value = params.get(key).toString();
+				p += "&" + key + "=" + value;
+			}
+			if (p.trim().length() > 0)
+				p = URLDecoder
+						.decode("?" + p.substring(1, p.length()), "UTF-8");
+
+			url = new URL(path + p);
+			conn = client.open(url);
+			if (conn.getResponseCode() != 200) {
+				if (onNetListenear != null) {
+					onNetListenear.onlistenear(conn.getResponseCode());
+				}
+				throw new Exception("Unexpected HTTP response: "
+						+ conn.getResponseCode() + " "
+						+ conn.getResponseMessage());
+			}
+			this.fialeLenth = conn.getContentLength();
+			is = conn.getInputStream();
+			res.put("inputstream", is);
+			res.put("length", fialeLenth);
+			return res;
+		} else if (mothed.equalsIgnoreCase("post")) {
+			conn = client.open(url);
+			conn.setDoOutput(true);
+			conn.setDoInput(true);
+			conn.setRequestMethod("POST");
+			conn.setRequestProperty("Content-Type",
+					"application/x-www-form-urlencoded");
+			conn.connect();
+			String p = "";
+			Set<String> keys = params.keySet();
+			Iterator<String> it = keys.iterator();
+			OutputStream out = conn.getOutputStream();
+
+			while (it.hasNext()) {
+				String key = it.next();
+				String value = params.get(key).toString();
+				p += key + "=" + value + "&";
+			}
+			if (p.length() > 0)
+				p = p.substring(0, p.length() - 1);
+
+			out.write(p.getBytes("UTF-8"));
+			out.flush();
+			out.close();
+			if (conn.getResponseCode() != 200) {
+				if (onNetListenear != null) {
+					onNetListenear.onlistenear(conn.getResponseCode());
+				}
+				throw new Exception("Unexpected HTTP response: "
+						+ conn.getResponseCode() + " "
+						+ conn.getResponseMessage());
+			}
+			this.fialeLenth = conn.getContentLength();
+			is = conn.getInputStream();
+			res.put("inputstream", is);
+			res.put("length", fialeLenth);
+			return res;
+		}
+
+		return null;
+
+	}
+
+	public Map<String, Object> exeHttpUploadFile(Context context, String path,
+			Map<String, Object> params, String mothed) throws Exception {
+		if (path == null)
+			throw new NullPointerException("url null");
+
+		if (params == null)
+			params = new HashMap<String, Object>();
+
+		if (mothed == null)
+			mothed = "get";
+
+		HttpURLConnection conn = null;
+		OkHttpClient client = new OkHttpClient();
+		URL url = new URL(path);
+
+		InputStream is = null;
+		Map<String, Object> res = new HashMap<String, Object>();
+		if (mothed.equalsIgnoreCase("get")) {
+			String p = "";
+
+			Set<String> keys = params.keySet();
+			Iterator<String> it = keys.iterator();
+			while (it.hasNext()) {
+				String key = it.next();
+				String value = params.get(key).toString();
+				p += "&" + key + "=" + value;
+			}
+			if (p.trim().length() > 0)
+				p = URLDecoder
+						.decode("?" + p.substring(1, p.length()), "UTF-8");
+
+			url = new URL(path + p);
+			conn = client.open(url);
+			if (conn.getResponseCode() != 200) {
+				if (onNetListenear != null) {
+					onNetListenear.onlistenear(conn.getResponseCode());
+				}
+				throw new Exception("Unexpected HTTP response: "
+						+ conn.getResponseCode() + " "
+						+ conn.getResponseMessage());
+			}
+			this.fialeLenth = conn.getContentLength();
+			is = conn.getInputStream();
+			res.put("inputstream", is);
+			res.put("length", fialeLenth);
+			return res;
+		} else if (mothed.equalsIgnoreCase("post")) {
+			String boundary = "------WebKitFormBoundaryUey8ljRiiZqhZHBu";
+			conn = client.open(url);
+			conn.setDoOutput(true);
+			conn.setDoInput(true);
+			conn.setUseCaches(true);
+			conn.setRequestMethod("POST");
+			conn.setRequestProperty("connection", "Keep-Alive");
+			conn.setRequestProperty("Charsert", "UTF-8");
+			conn.setRequestProperty("Content-Type",
+					"multipart/form-data;boundary=" + boundary);
+			// 指定流的大小，当内容达到这个值的时候就把流输出
+			conn.setChunkedStreamingMode(10240);
+			OutputStream out = new DataOutputStream(conn.getOutputStream());
+
+			conn.connect();
+			Set<String> keys = params.keySet();
+			Iterator<String> it = keys.iterator();
+			List<Map<String, File>> files = new ArrayList<Map<String, File>>();
+			while (it.hasNext()) {
+				String key = it.next();
+				Object obj = params.get(key);
+				if (obj instanceof File) {
+					Map<String, File> fs = new HashMap<String, File>();
+					fs.put(key, (File) obj);
+					files.add(fs);
+				} else {
+					String value = obj.toString();
+					// 添加form属性
+					StringBuilder sb = new StringBuilder();
+					sb.append("--");
+					sb.append(boundary);
+					sb.append("\r\n");
+					sb.append("Content-Disposition: form-data; name=\"" + key
+							+ "\"");
+					sb.append("\r\n\r\n");
+					out.write(sb.toString().getBytes("utf-8"));
+					out.write("\r\n".getBytes("utf-8"));
+					out.write(encode(value + "\r\n"));
+				}
+
+			}
+
+			for (int i = 0; i < files.size(); i++) {
+				StringBuilder sb = new StringBuilder();
+
+				Map<String, File> fm = files.get(i);
+				Entry<String, File> en = fm.entrySet().iterator().next();
+				String keyString = en.getKey();
+				File f = en.getValue();
+				// 添加form属性
+				sb.append("--");
+				sb.append(boundary);
+				sb.append("\r\n");
+				sb.append("Content-Disposition: form-data; name=\""+keyString+"\";");
+				sb.append("filename=\"" + f.getName() + "\"\r\n");
+				sb.append("Content-Type: " + getContentType());
+				sb.append("\r\n\r\n");
+				out.write(sb.toString().getBytes("utf-8"));
+				writeFile(out,f);
+				out.write((boundary+"--\r\n").getBytes("utf-8"));
+			}
+
+			out.flush();
+			out.close();
+			if (conn.getResponseCode() != 200) {
+				if (onNetListenear != null) {
+					onNetListenear.onlistenear(conn.getResponseCode());
+				}
+				throw new Exception("Unexpected HTTP response: "
+						+ conn.getResponseCode() + " "
+						+ conn.getResponseMessage());
+			}
+			this.fialeLenth = conn.getContentLength();
+			is = conn.getInputStream();
+			res.put("inputstream", is);
+			res.put("length", fialeLenth);
+			return res;
+		}
+
+		return null;
+
+	}
+
+	private void writeFile(OutputStream out, File f) throws IOException {
+		FileInputStream in = new FileInputStream(f);
+		byte[] b = new byte[1024];
+		int n;
+		while ((n = in.read(b)) != -1) {
+			out.write(b, 0, n);
+		}
+		in.close();
+	}
+
+	// 把文件转换成字节数组
+	public byte[] getBytes(File f) throws Exception {
+		FileInputStream in = new FileInputStream(f);
+		ByteArrayOutputStream out = new ByteArrayOutputStream();
+		byte[] b = new byte[1024];
+		int n;
+		while ((n = in.read(b)) != -1) {
+			out.write(b, 0, n);
+		}
+		in.close();
+		return out.toByteArray();
+	}
+
+	// 获取文件的上传类型，图片格式为image/png,image/jpg等。非图片为application/octet-stream
+	public String getContentType() {
+
+		return "application/octet-stream"; // 此行不再细分是否为图片，全部作为application/octet-stream
+											// 类型
+	}
+
+	public byte[] encode(String res) {
+		return res.getBytes(Charset.forName("utf-8"));
+
+	}
+
+	@SuppressWarnings("unused")
+	private HttpURLConnection buildConnection(String path) {
+		try {
+			URL url = new URL(path);
+			if (url.getProtocol().equals("https")) {
+				SSLContext sctx = null;
+				sctx = SSLContext.getInstance("TLS");
+				sctx.init(new KeyManager[0],
+						new TrustManager[]{new X509TrustManager() {
+
+							@Override
+							public X509Certificate[] getAcceptedIssuers() {
+								// TODO Auto-generated method stub
+								return null;
+							}
+
+							@Override
+							public void checkServerTrusted(
+									X509Certificate[] chain, String authType)
+									throws CertificateException {
+								// TODO Auto-generated method stub
+
+							}
+
+							@Override
+							public void checkClientTrusted(
+									X509Certificate[] chain, String authType)
+									throws CertificateException {
+								// TODO Auto-generated method stub
+
+							}
+						}}, new SecureRandom());
+				HttpsURLConnection conn = (HttpsURLConnection) url
+						.openConnection();
+				conn.setSSLSocketFactory(sctx.getSocketFactory());
+				conn.setHostnameVerifier(new HostnameVerifier() {
+
+					@Override
+					public boolean verify(String hostname, SSLSession session) {
+						// TODO Auto-generated method stub
+						// 默认认证通过
+						return true;
+					}
+				});
+				return conn;
+			} else {
+				return (HttpURLConnection) url.openConnection();
+			}
+		} catch (MalformedURLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (NoSuchAlgorithmException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (KeyManagementException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	private OnNetListenear onNetListenear;
+
+	/**
+	 * @param onNetListenear
+	 *            the onNetListenear to set
+	 */
+	public void setOnNetListenear(OnNetListenear onNetListenear) {
+		this.onNetListenear = onNetListenear;
+	}
+
+	public interface OnNetListenear {
+		void onlistenear(int status);
+	}
+}

@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path="src"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/jdk1.7.0_79"/>
+	<classpathentry kind="lib" path="lib/fastjson-1.1.41.jar" sourcepath="I:/dengzhijiang/maven/apache-maven-3.3.9/jar/com/alibaba/fastjson/1.1.41/fastjson-1.1.41-sources.jar"/>
+	<classpathentry kind="lib" path="lib/asyntask2.jar"/>
+	<classpathentry kind="output" path="bin"/>
+</classpath>

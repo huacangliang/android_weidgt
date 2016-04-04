@@ -9,6 +9,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.lang.reflect.Field;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.security.MessageDigest;
 import java.text.DecimalFormat;
 import java.text.ParseException;
@@ -27,18 +29,30 @@ import java.util.regex.Pattern;
 
 import org.apache.http.util.ByteArrayBuffer;
 
+import com.jingzhong.asyntask2.R;
+import com.jingzhong.asyntask2.R.id;
+import com.jingzhong.asyntask2.annotation.CreateView;
+import com.squareup.okhttp.OkHttpClient;
+
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
+import android.content.res.Resources;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Paint;
 import android.graphics.Paint.FontMetrics;
 import android.graphics.Rect;
+import android.graphics.Typeface;
 import android.media.ThumbnailUtils;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
+import android.net.NetworkInfo.State;
 import android.os.Environment;
+import android.os.StrictMode;
 import android.telephony.TelephonyManager;
 import android.text.TextUtils;
 import android.util.Base64;
@@ -48,14 +62,9 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.view.inputmethod.InputMethodManager;
-import android.widget.GridView;
 import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.Toast;
-
-import com.jingzhong.asyntask2.R;
-import com.jingzhong.asyntask2.R.id;
-import com.jingzhong.asyntask2.annotation.CreateView;
 
 /**
  * 
@@ -63,20 +72,98 @@ import com.jingzhong.asyntask2.annotation.CreateView;
  * 
  */
 public class Utils {
-	
+
+	/**
+	 * 该方法读取的是明文配置文件
+	 * 
+	 * @param context
+	 * @param name
+	 * @return
+	 */
+	@SuppressWarnings("deprecation")
+	public static String readFromAssets(Context context, String name) {
+
+		try {
+			InputStream is = context.getResources().getAssets().open(name);
+			byte[] buffer = new byte[1];
+			ByteArrayBuffer bab = new ByteArrayBuffer(1024);
+
+			while (is.read(buffer) != -1) {
+				bab.append(buffer, 0, buffer.length);
+			}
+			is.close();
+
+			String res = new String(bab.toByteArray());
+
+			return res.trim();
+		}
+		catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	/**
+	 * 读取字体文件
+	 * 
+	 * @return
+	 */
+	public static Typeface readFont(Context context, String name) {
+		Typeface jingshuifont;
+
+		jingshuifont = Typeface.createFromAsset(context.getAssets(), name);
+
+		return jingshuifont;
+	}
+
+	public static boolean isActive(String url) {
+		StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
+		StrictMode.setThreadPolicy(policy);
+		OkHttpClient client = new OkHttpClient();
+
+		try {
+			if (client.open(new URL(url)).getResponseCode() == 200) { return true; }
+		}
+		catch (MalformedURLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return false;
+	}
+
+	/**
+	 * 根据制定的宽度调整Bitmap的缩放比例
+	 * 
+	 * @return
+	 */
+	public static Bitmap getBitmap(Resources resource, int resourceId) {
+
+		BitmapFactory.Options opt = new BitmapFactory.Options();
+		opt.inJustDecodeBounds = false;
+		opt.inSampleSize = 1;
+		Bitmap bitmap = BitmapFactory.decodeResource(resource, resourceId, opt);
+
+		return bitmap;
+	}
+
 	/**
 	 * 计算listview适应高度
 	 * 
 	 * @param listView
 	 */
 	public static void setListViewHeightBasedOnChildren(ListView listView) {
-		if (listView == null) {
-			return;
-		}
+		if (listView == null) { return; }
 		ListAdapter listAdapter = listView.getAdapter();
-		if (listAdapter == null) {
-			return;
-		}
+		if (listAdapter == null) { return; }
 		int totalHeight = 0;
 		for (int i = 0; i < listAdapter.getCount(); i++) {
 			View listItem = listAdapter.getView(i, null, listView);
@@ -88,8 +175,7 @@ public class Utils {
 		listView.setLayoutParams(params);
 	}
 
-	public static String getFileExitName(
-			String name) {
+	public static String getFileExitName(String name) {
 		if (name.lastIndexOf(".") > -1) {
 			name = name.substring(name.lastIndexOf(".") + 1, name.length());
 			if (name.equals("jpg")) {
@@ -100,8 +186,7 @@ public class Utils {
 
 	}
 
-	public static boolean isImage(
-			String name) {
+	public static boolean isImage(String name) {
 		String[] img = new String[] { "jpg", "png", "gif", "jpeg" };
 		Arrays.sort(img);
 		if (Arrays.binarySearch(img, name) != -1) { return true; }
@@ -118,8 +203,7 @@ public class Utils {
 	 *            The currently focused view
 	 * @return success or not.
 	 */
-	public static boolean hideInputMethod(
-			Context context, View view) {
+	public static boolean hideInputMethod(Context context, View view) {
 		if (context == null || view == null) { return false; }
 
 		InputMethodManager imm = (InputMethodManager) context.getSystemService(Context.INPUT_METHOD_SERVICE);
@@ -138,8 +222,7 @@ public class Utils {
 	 *            keyboard input
 	 * @return success or not.
 	 */
-	public static boolean showInputMethod(
-			Context context, View view) {
+	public static boolean showInputMethod(Context context, View view) {
 		if (context == null || view == null) { return false; }
 
 		InputMethodManager imm = (InputMethodManager) context.getSystemService(Context.INPUT_METHOD_SERVICE);
@@ -148,14 +231,12 @@ public class Utils {
 		return false;
 	}
 
-	public static float pixelToDp(
-			Context context, float val) {
+	public static float pixelToDp(Context context, float val) {
 		float density = context.getResources().getDisplayMetrics().density;
 		return val * density;
 	}
 
-	public static String getHashedFileName(
-			String url) {
+	public static String getHashedFileName(String url) {
 		if (url == null || url.endsWith("/")) { return null; }
 
 		String suffix = getSuffix(url);
@@ -180,8 +261,7 @@ public class Utils {
 		return null;
 	}
 
-	private static String getSuffix(
-			String fileName) {
+	private static String getSuffix(String fileName) {
 		int dot_point = fileName.lastIndexOf(".");
 		int sl_point = fileName.lastIndexOf("/");
 		if (dot_point < sl_point) { return ""; }
@@ -205,8 +285,7 @@ public class Utils {
 	 * @return True if an Intent with the specified action can be sent and
 	 *         responded to, false otherwise.
 	 */
-	public static boolean isIntentAvailable(
-			Context context, Intent intent) {
+	public static boolean isIntentAvailable(Context context, Intent intent) {
 		final PackageManager packageManager = context.getPackageManager();
 
 		List<ResolveInfo> list = packageManager.queryIntentActivities(intent, PackageManager.MATCH_DEFAULT_ONLY);
@@ -214,8 +293,7 @@ public class Utils {
 		return list.size() > 0;
 	}
 
-	public static View creatViewById(
-			View root, String idName) throws IllegalArgumentException, IllegalAccessException {
+	public static View creatViewById(View root, String idName) throws IllegalArgumentException, IllegalAccessException {
 		Class<id> c = R.id.class;
 		Field[] fields = c.getDeclaredFields();
 		for (int i = 0; i < fields.length; i++) {
@@ -230,8 +308,7 @@ public class Utils {
 		return null;
 	}
 
-	public static void creatViewById(
-			Activity root, View v, String idName) throws IllegalArgumentException, IllegalAccessException {
+	public static void creatViewById(Activity root, View v, String idName) throws IllegalArgumentException, IllegalAccessException {
 		Class<id> c = R.id.class;
 		Field[] fields = c.getDeclaredFields();
 		for (int i = 0; i < fields.length; i++) {
@@ -246,8 +323,7 @@ public class Utils {
 		return;
 	}
 
-	public static View creatViewById(
-			Activity root, String idName) throws IllegalArgumentException, IllegalAccessException {
+	public static View creatViewById(Activity root, String idName) throws IllegalArgumentException, IllegalAccessException {
 		Class<id> c = R.id.class;
 		Field[] fields = c.getDeclaredFields();
 		for (int i = 0; i < fields.length; i++) {
@@ -262,21 +338,18 @@ public class Utils {
 		return null;
 	}
 
-	public static int findId(
-			String idName, Class r) throws NoSuchFieldException, IllegalAccessException, IllegalArgumentException {
+	public static int findId(String idName, Class r) throws NoSuchFieldException, IllegalAccessException, IllegalArgumentException {
 
 		return r.getDeclaredField(idName).getInt(null);
 	}
 
-	public static int findIdByIdName(
-			String name, Class idClass) throws IllegalArgumentException, IllegalAccessException, NoSuchFieldException {
+	public static int findIdByIdName(String name, Class idClass) throws IllegalArgumentException, IllegalAccessException, NoSuchFieldException {
 
 		return findId(name, idClass);
 
 	}
 
-	public static void injectObject(
-			Object obj, Activity activity, Class idClass) throws Exception {
+	public static void injectObject(Object obj, Activity activity, Class idClass) throws Exception {
 		Class<?> classType = obj.getClass();
 		Field[] fields = classType.getDeclaredFields();
 		for (int i = 0; fields != null && i < fields.length; i++) {
@@ -301,8 +374,7 @@ public class Utils {
 		}
 	}
 
-	public static void injectObject(
-			Object obj, View v, Class idClass) throws Exception {
+	public static void injectObject(Object obj, View v, Class idClass) throws Exception {
 		Class<?> classType = obj.getClass();
 		Field[] fields = classType.getDeclaredFields();
 		for (int i = 0; fields != null && i < fields.length; i++) {
@@ -333,8 +405,7 @@ public class Utils {
 	 * @param time
 	 * @return
 	 */
-	public static int getDaysByYearAndMonth(
-			String time) {
+	public static int getDaysByYearAndMonth(String time) {
 		if (time.indexOf("-") > 0) {
 			time = time.replace("-", "/");
 		}
@@ -358,8 +429,7 @@ public class Utils {
 	 * @param date
 	 * @return
 	 */
-	public static int pexDayOfMonth(
-			long date) {
+	public static int pexDayOfMonth(long date) {
 		Date dt = new Date(date);
 		;
 		return dt.getDate();
@@ -382,8 +452,7 @@ public class Utils {
 	 * 
 	 * @param context
 	 */
-	public static String autoSetPhoneMoberId(
-			Context context) {
+	public static String autoSetPhoneMoberId(Context context) {
 
 		TelephonyManager telephonemanage = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
 
@@ -399,20 +468,17 @@ public class Utils {
 		return "";
 	}
 
-	public static void showLongToast(
-			Context context, String msg) {
+	public static void showLongToast(Context context, String msg) {
 		if (context == null || msg == null) return;
 		Toast.makeText(context, msg, Toast.LENGTH_LONG).show();
 	}
 
-	public static void showShortToast(
-			Context context, String msg) {
+	public static void showShortToast(Context context, String msg) {
 		if (context == null || msg == null) return;
 		Toast.makeText(context, msg, Toast.LENGTH_SHORT).show();
 	}
 
-	public static void gotoActivity(
-			Context c, Class<?> cs, Intent i) {
+	public static void gotoActivity(Context c, Class<?> cs, Intent i) {
 		if (i == null) {
 			Intent intent = new Intent(c, cs);
 			intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
@@ -428,14 +494,12 @@ public class Utils {
 
 	public interface CheckIsEmptySTR {
 
-		boolean isE(
-				String str);
+		boolean isE(String str);
 	}
 
-	public static boolean checkEmail(
-			String str) {
-		Pattern pattern = Pattern.compile(
-				"^([a-zA-Z0-9_\\-\\.]+)@((\\[[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.)|(([a-zA-Z0-9\\-]+\\.)+))([a-zA-Z]{2,4}|[0-9]{1,3})(\\]?)$");
+	public static boolean checkEmail(String str) {
+		Pattern pattern = Pattern
+			.compile("^([a-zA-Z0-9_\\-\\.]+)@((\\[[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.)|(([a-zA-Z0-9\\-]+\\.)+))([a-zA-Z]{2,4}|[0-9]{1,3})(\\]?)$");
 		Matcher matcher = pattern.matcher(str);
 		return matcher.matches();
 	}
@@ -446,8 +510,7 @@ public class Utils {
 	 * @param obj
 	 * @return
 	 */
-	public static Map<String, Object> getValueMap(
-			Object obj) {
+	public static Map<String, Object> getValueMap(Object obj) {
 
 		Map<String, Object> map = new HashMap<String, Object>();
 		// System.out.println(obj.getClass());
@@ -478,20 +541,17 @@ public class Utils {
 
 	}
 
-	public static String retain2(
-			double f) {
+	public static String retain2(double f) {
 		DecimalFormat df = new DecimalFormat("0.00");
 		return df.format(f);
 	}
 
-	public static String retain1(
-			double f) {
+	public static String retain1(double f) {
 		DecimalFormat df = new DecimalFormat("0.0");
 		return df.format(f);
 	}
 
-	public static void showProgress(
-			ProgressDialog progressShow, String msg, View v) {
+	public static void showProgress(ProgressDialog progressShow, String msg, View v) {
 		if (progressShow == null) { return; }
 
 		progressShow.setProgressStyle(ProgressDialog.STYLE_SPINNER);
@@ -508,17 +568,15 @@ public class Utils {
 
 	}
 
-	public static void cancelProgress(
-			ProgressDialog progressShow) {
+	public static void cancelProgress(ProgressDialog progressShow) {
 		if (progressShow == null) { return; }
 		if (progressShow.isShowing()) progressShow.cancel();
 	}
 
-	public static String checkFilePath(
-			String name, Context mContext, String FILECACHEPATH) {
+	public static String checkFilePath(String name, Context mContext, String FILECACHEPATH) {
 		File f = null;
-		if (Environment.MEDIA_MOUNTED.equals(Environment.getExternalStorageState())
-				|| !Environment.isExternalStorageRemovable()) {
+		if (Environment.MEDIA_MOUNTED
+			.equals(Environment.getExternalStorageState()) || !Environment.isExternalStorageRemovable()) {
 			f = mContext.getExternalCacheDir();
 			if (f == null) f = mContext.getCacheDir();
 		}
@@ -592,8 +650,7 @@ public class Utils {
 		return filePath;
 	}
 
-	public static Bitmap createBitmapAsWingdow(
-			Activity ac) {
+	public static Bitmap createBitmapAsWingdow(Activity ac) {
 		View v = ac.getWindow().getDecorView();
 		v.setDrawingCacheEnabled(true);
 		v.buildDrawingCache();
@@ -622,8 +679,7 @@ public class Utils {
 		return b;
 	}
 
-	public static String cupView(
-			Bitmap b, Context ac) {
+	public static String cupView(Bitmap b, Context ac) {
 
 		String path = "";
 		InputStream is = Bitmap2IS(b);
@@ -647,8 +703,7 @@ public class Utils {
 	 * @return
 	 * @throws Exception
 	 */
-	public synchronized static String save(
-			InputStream is, Context context, String name) throws Exception {
+	public synchronized static String save(InputStream is, Context context, String name) throws Exception {
 		File dataFile = null;
 		if (Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
 			dataFile = Environment.getExternalStorageDirectory().getAbsoluteFile();
@@ -698,8 +753,7 @@ public class Utils {
 	 * @return
 	 * @throws Exception
 	 */
-	public synchronized static String save(
-			InputStream is, String path, String name) {
+	public synchronized static String save(InputStream is, String path, String name) {
 
 		File f = new File(path);
 		if (!f.isDirectory()) {
@@ -781,8 +835,7 @@ public class Utils {
 	 * @param bm
 	 * @return
 	 */
-	public static InputStream Bitmap2IS(
-			Bitmap bm) {
+	public static InputStream Bitmap2IS(Bitmap bm) {
 		if (bm == null) { return null; }
 		ByteArrayOutputStream baos = null;
 		try {
@@ -820,24 +873,10 @@ public class Utils {
 	 * @param ac
 	 * @param color
 	 */
-	public static void setFullScreeColor(
-			Activity ac, int color) {
-		return;
-		// int status = View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-		// | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN;
-		//
-		// if (VERSION.SDK_INT >= VERSION_CODES.KITKAT) {
-		// // // 透明状态栏
-		// ac.getWindow().addFlags(
-		// WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
-		// // // // 透明导航栏
-		// // ac.getWindow().addFlags(
-		// // WindowManager.LayoutParams.FLAG_TRANSLUCENT_NAVIGATION);
-		// ac.getWindow().getDecorView().setSystemUiVisibility(status);
-		// SystemBarTintManager tintManager = new SystemBarTintManager(ac);
-		// tintManager.setStatusBarTintEnabled(true);
-		// tintManager.setStatusBarTintColor(color);
-		// }
+	public static void setFullScreeColor(Activity ac, int color) {
+
+		SystemBarTintManager manager = new SystemBarTintManager(ac);
+		manager.init(color);
 	}
 
 	private static SimpleDateFormat dataFormat;
@@ -850,15 +889,13 @@ public class Utils {
 
 	}
 
-	public static Bitmap createSimpleThums_200px(
-			Bitmap bitmap) {
+	public static Bitmap createSimpleThums_200px(Bitmap bitmap) {
 
 		return ThumbnailUtils.extractThumbnail(bitmap, 200, 200, ThumbnailUtils.OPTIONS_RECYCLE_INPUT);
 
 	}
 
-	public static boolean isNumeric(
-			String str) {
+	public static boolean isNumeric(String str) {
 
 		try {
 			Integer.parseInt(str);
@@ -874,8 +911,7 @@ public class Utils {
 		return true;
 	}
 
-	public static boolean startPing(
-			String ip) {
+	public static boolean startPing(String ip) {
 		Log.e("Ping", "startPing...");
 		boolean success = false;
 		Process p = null;
@@ -903,8 +939,7 @@ public class Utils {
 		return success;
 	}
 
-	public static String readXMLToString_Config(
-			Context context, String name) {
+	public static String readXMLToString_Config(Context context, String name) {
 
 		try {
 			InputStream is = context.getResources().getAssets().open(name);
@@ -933,8 +968,13 @@ public class Utils {
 		return null;
 	}
 
-	public static String converoDate(
-			int date) {
+	/**
+	 * 将小时分钟秒数格式化，只格式其中一个，例如1小时格式化为01小时
+	 * 
+	 * @param date
+	 * @return
+	 */
+	public static String converoDate(int date) {
 		if (date < 0) {
 			date = 0;
 		}
@@ -948,8 +988,7 @@ public class Utils {
 	 * 
 	 * @param context
 	 */
-	public static String getPhoneMoberId(
-			Context context) {
+	public static String getPhoneMoberId(Context context) {
 
 		TelephonyManager telephonemanage = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
 
@@ -986,8 +1025,7 @@ public class Utils {
 	 * @param cls
 	 * @return
 	 */
-	public static Map<String, Object> objectFieldToList(
-			Class<?> cls) {
+	public static Map<String, Object> objectFieldToList(Class<?> cls) {
 		Field[] fields = cls.getDeclaredFields();
 		Map<String, Object> fieldList = new HashMap<String, Object>();
 		for (int i = 0; i < fields.length; i++) {
@@ -1005,8 +1043,7 @@ public class Utils {
 	 * @param obj
 	 * @param source
 	 */
-	public static void setValue(
-			Object obj, Map<String, Object> source) {
+	public static void setValue(Object obj, Map<String, Object> source) {
 
 		TreeSet<String> tableKey = new TreeSet<String>(source.keySet());
 		Iterator<String> it = tableKey.iterator();
@@ -1088,8 +1125,7 @@ public class Utils {
 
 	}
 
-	public static Double getMaxValue(
-			List<Double> list) {
+	public static Double getMaxValue(List<Double> list) {
 		double max = 0;
 		for (int i = 0; i < list.size(); i++) {
 			double t = list.get(i);
@@ -1105,8 +1141,7 @@ public class Utils {
 	 *            时间戳
 	 * @return
 	 */
-	public static String getStandardDate(
-			long timeStr) {
+	public static String getStandardDate(long timeStr) {
 
 		StringBuffer sb = new StringBuffer();
 
@@ -1165,8 +1200,7 @@ public class Utils {
 	 * @param weight
 	 *            体重 单位 千克
 	 */
-	public static int calculateCalories(
-			double speed, int seconds, int weight) {
+	public static int calculateCalories(double speed, int seconds, int weight) {
 		// System.out.println(">>>[卡路里]speed="+speed+", seconds="+seconds+",
 		// weight="+weight);
 		// 卡路里
@@ -1176,13 +1210,20 @@ public class Utils {
 		// 速度 单位 km/hr
 		double s = speed * 3600.0 / 1000;// speed * 1000 / 3600.0;
 		if (s <= 9.654) return (int) (s * (seconds / 3600.0) * weight * 1.099);
-		else if (s > 19.308) modulus = 0.13;
-		else if (s > 17.699) modulus = 0.113;
-		else if (s > 16.09) modulus = 0.1;
-		else if (s > 14.481) modulus = 0.094;
-		else if (s > 12.872) modulus = 0.089;
-		else if (s > 11.263) modulus = 0.085;
-		else if (s > 9.654) modulus = 0.079;
+		else
+			if (s > 19.308) modulus = 0.13;
+		else
+				if (s > 17.699) modulus = 0.113;
+		else
+					if (s > 16.09) modulus = 0.1;
+		else
+						if (s > 14.481) modulus = 0.094;
+		else
+							if (s > 12.872) modulus = 0.089;
+		else
+								if (s > 11.263) modulus = 0.085;
+		else
+									if (s > 9.654) modulus = 0.079;
 
 		calory = getCalory(seconds / 60.0, weight, modulus);
 		return (int) calory;
@@ -1196,8 +1237,7 @@ public class Utils {
 	 * @param modulus
 	 * @return
 	 */
-	private static double getCalory(
-			double minute, int weight, double modulus) {
+	private static double getCalory(double minute, int weight, double modulus) {
 		return minute * weight / 0.453 * modulus;
 	}
 
@@ -1209,16 +1249,14 @@ public class Utils {
 	 * @param fontSize
 	 * @return
 	 */
-	public static float getFontHeight(
-			float fontSize) {
+	public static float getFontHeight(float fontSize) {
 		Paint paint = new Paint();
 		paint.setTextSize(fontSize);
 		FontMetrics fm = paint.getFontMetrics();
 		return (float) Math.ceil(fm.descent - fm.ascent);
 	}
 
-	public static String InputToStr(
-			InputStream is) {
+	public static String InputToStr(InputStream is) {
 		ByteArrayOutputStream bos = new ByteArrayOutputStream();
 		try {
 			int i;
@@ -1238,11 +1276,10 @@ public class Utils {
 
 	}
 
-	public static String InputToStr(
-			InputStream is, String charset) {
+	public static String InputToStr(InputStream is, String charset) {
 		if (is == null) { return null; }
 		ByteArrayOutputStream bos = new ByteArrayOutputStream();
-		byte[] buffer=new byte[1024];
+		byte[] buffer = new byte[1024];
 		try {
 			int i;
 			while ((i = is.read(buffer)) != -1) {
@@ -1261,8 +1298,7 @@ public class Utils {
 
 	}
 
-	public static byte[] InputToBytes(
-			InputStream is) {
+	public static byte[] InputToBytes(InputStream is) {
 		ByteArrayOutputStream bos = new ByteArrayOutputStream();
 		try {
 			int i;
@@ -1282,4 +1318,10 @@ public class Utils {
 
 	}
 
+	public static boolean isActiveForNet(Context context) {
+		ConnectivityManager connectivityManager = (ConnectivityManager) context
+			.getSystemService(Context.CONNECTIVITY_SERVICE);
+		NetworkInfo ni = connectivityManager.getActiveNetworkInfo();
+		return ni != null && ni.isConnected();
+	}
 }

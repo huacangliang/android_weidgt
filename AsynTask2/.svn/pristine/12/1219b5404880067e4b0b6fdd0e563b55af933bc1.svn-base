@@ -1,0 +1,242 @@
+package com.jingzhong.asyntask2.utils;
+
+import java.io.File;
+import java.io.FileFilter;
+import java.util.LinkedList;
+import java.util.Queue;
+import java.util.Stack;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.regex.Pattern;
+
+/**
+ * 线程统一入口
+ * 
+ * @author dengzhijiang
+ * 
+ */
+public class ThreadService {
+
+	/**
+	 * CPU number
+	 */
+	private int cpuNum = 0;
+
+	class CpuFilter implements FileFilter {
+		public boolean accept(File pathname) {
+			if (Pattern.matches("cpu[0-9]", pathname.getName())) {
+				return true;
+			}
+			return false;
+		}
+	}
+
+	private ThreadService() {
+		try {
+			File dir = new File("/sys/devices/system/cpu/");
+			File[] files = dir.listFiles(new CpuFilter());
+			cpuNum = files.length;
+		} catch (Exception e) {
+			cpuNum = 1;
+		}
+
+		switch (cpuNum) {
+			case 1 :
+				THREADNUM = 20;
+				MAXTHREADNUM = 8;
+				break;
+			case 2 :
+				THREADNUM = 25;
+				MAXTHREADNUM = 18;
+				break;
+			case 4 :
+				THREADNUM = 26;
+				MAXTHREADNUM = 20;
+				break;
+			case 8 :
+				THREADNUM = 26;
+				MAXTHREADNUM = 20;
+				break;
+			case 12 :
+				THREADNUM = 28;
+				MAXTHREADNUM = 25;
+				break;
+
+			default :
+				THREADNUM = 20;
+				MAXTHREADNUM = 8;
+				break;
+		}
+
+		executorService = Executors.newFixedThreadPool(THREADNUM);
+		minExecutorService= Executors.newFixedThreadPool(MINTHREADNUM);
+		TaskManager task = new TaskManager();
+		task.start();
+
+	}
+
+	private static ThreadService instance;
+
+	public static ThreadService getInstance() {
+		if (instance == null) {
+			instance = new ThreadService();
+		}
+		return instance;
+	}
+
+	/**
+	 * 用于少数线程使用
+	 */
+	private int MINTHREADNUM=8;
+	
+	/**
+	 * 允许的线程数
+	 */
+	private int THREADNUM = 20;
+
+	/**
+	 * 理想的线程数
+	 */
+	private int MAXTHREADNUM = 8;
+
+	/**
+	 * 当前线程数
+	 */
+	private int newThreadNum = 0;
+
+	private ExecutorService executorService;
+	
+	private ExecutorService minExecutorService;
+
+	/**
+	 * 执行中的队列，先进先出
+	 */
+	@SuppressWarnings("rawtypes")
+	private Queue<Future> invokeQueue = new LinkedList<Future>();
+
+	/**
+	 * 等待队列，为了优化体验，规律为后进先出
+	 */
+	private Stack<Thread> mQueue = new Stack<Thread>();
+
+	/**
+	 * 常驻任务列表
+	 */
+	private LinkedList<Thread> residentTask = new LinkedList<Thread>();
+
+	@SuppressWarnings("rawtypes")
+	public void executeThread(Thread run) {
+		if (!isRuning) {
+			isRuning = true;
+			new TaskManager().start();
+		}
+
+		if (newThreadNum < THREADNUM) {
+			if (newThreadNum < MAXTHREADNUM) {
+				synchronized (residentTask) {
+					run.start();
+					residentTask.add(run);
+					newThreadNum++;
+				}
+
+			} else {
+				Future future = executorService.submit(run);
+				invokeQueue.offer(future);
+				newThreadNum++;
+			}
+		} else {
+			mQueue.push((Thread) run);
+			newThreadNum++;
+		}
+	}
+	
+	/**
+	 * 不需要创建线程
+	 * @param run
+	 */
+	public void executeThread(Runnable run) {
+		if (!isRuning) {
+			isRuning = true;
+			new TaskManager().start();
+		}
+
+		if (newThreadNum < THREADNUM) {
+			if (newThreadNum < MINTHREADNUM) {
+					minExecutorService.execute(run);
+					newThreadNum++;
+
+			} else {
+				Future<?> future = executorService.submit(run);
+				invokeQueue.offer(future);
+				newThreadNum++;
+			}
+		} else {
+			mQueue.push((Thread) run);
+			newThreadNum++;
+		}
+	}
+
+	public static boolean isRuning = true;
+
+	/**
+	 * 任务管理
+	 * 
+	 * @author 邓志江
+	 * 
+	 */
+	private class TaskManager extends Thread {
+		@SuppressWarnings("rawtypes")
+		@Override
+		public void run() {
+			while (isRuning) {
+				Future task = invokeQueue.peek();
+				if (task == null)
+					invokeQueue.poll();
+				else if (task != null && task.isDone()) {
+					invokeQueue.poll();
+					if (!mQueue.isEmpty()) {
+						Runnable run = mQueue.pop();
+						Future future = executorService.submit(run);
+						invokeQueue.offer(future);
+					}
+				}
+
+				newThreadNum = invokeQueue.size() + residentTask.size();
+
+				for (int i = 0; i < residentTask.size(); i++) {
+					Thread t = residentTask.get(i);
+					if (t.getState() != State.RUNNABLE) {
+						synchronized (residentTask) {
+							residentTask.remove(t);
+							newThreadNum--;
+						}
+					}
+				}
+				if (newThreadNum <= 0)
+					isRuning = false;
+
+				try {
+					Thread.sleep(1000 * 1);
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+			executorService.shutdown();
+			for (int i = 0; i < residentTask.size(); i++) {
+				Thread t = residentTask.get(i);
+				if (t.getState() == State.RUNNABLE) {
+					synchronized (t) {
+						residentTask.remove(t);
+						newThreadNum--;
+						t.interrupt();
+					}
+				}
+			}
+
+			super.run();
+		}
+	}
+
+}

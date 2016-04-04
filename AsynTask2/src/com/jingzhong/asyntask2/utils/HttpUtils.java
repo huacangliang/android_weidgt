@@ -11,12 +11,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
-import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.InetAddress;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.net.URLConnection;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.net.UnknownHostException;
@@ -29,6 +27,7 @@ import java.security.cert.X509Certificate;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import javax.net.ssl.HostnameVerifier;
@@ -39,8 +38,7 @@ import javax.net.ssl.SSLSession;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 
-import org.apache.http.params.CoreProtocolPNames;
-
+import com.jingzhong.asyntask2.listenear.Defaultlistenear2;
 import com.squareup.okhttp.OkHttpClient;
 
 import android.content.Context;
@@ -54,33 +52,25 @@ import android.util.Log;
  * @author dengzhijiang
  * 
  */
-public class HttpUtils {
+public class HttpUtils implements HttpMothed {
 
-	private final static int	BUFFER_SIZE	= 1024;
+	private final static int BUFFER_SIZE = 1024;
 
-	private static String		TAG			= "HttpUtils";
+	private static String TAG = "HttpUtils";
 
-	private File				resultFile;
+	private String charset = "UTF-8";
 
-	private byte[]				resultByte;
+	private final static String BOUNDARY = "------WebKitFormBoundaryUey8ljRiiZqhZHBu";
 
-	private String				resultStr;
+	private boolean isFinish = false;
 
-	private String				charset		= "UTF-8";
+	private Result result;
 
-	private InputStream			resultInput;
+	public final static String POST = "POST";
 
-	private final static String	BOUNDARY	= "------WebKitFormBoundaryUey8ljRiiZqhZHBu";
+	public final static String GET = "GET";
 
-	private boolean				isFinish	= false;
-
-	private Result				result;
-
-	public final static String	POST		= "POST";
-
-	public final static String	GET			= "GET";
-
-	private int					timeOut		= 120 * 1000;
+	private int timeOut = 120 * 1000;
 
 	public int getTimeOut() {
 		return timeOut;
@@ -98,9 +88,9 @@ public class HttpUtils {
 	/**
 	 * 文件下载长度
 	 */
-	public int					fileLenth	= 0;
+	public int fileLenth = 0;
 
-	public static final String	USER_AGENT	= "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; SV1; QQDownload 1.7; .NET CLR 1.1.4322; CIBA; .NET CLR 2.0.50727)";
+	public static final String USER_AGENT = "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; SV1; QQDownload 1.7; .NET CLR 1.1.4322; CIBA; .NET CLR 2.0.50727)";
 
 	public static byte[] readBuffer(InputStream in) {
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
@@ -113,16 +103,13 @@ public class HttpUtils {
 			out.flush();
 			buffer = out.toByteArray();
 			out.close();
-		}
-		catch (IOException e) {
+		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-		}
-		finally {
+		} finally {
 			try {
 				in.close();
-			}
-			catch (IOException e) {
+			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
@@ -133,10 +120,12 @@ public class HttpUtils {
 	}
 
 	public static String getWifiName(Context context) {
-		WifiManager mWifi = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
+		WifiManager mWifi = (WifiManager) context
+				.getSystemService(Context.WIFI_SERVICE);
 		WifiInfo wifi = mWifi.getConnectionInfo();
 		String name = wifi.getSSID();
-		if (name != null) name = name.replace("\"", "");
+		if (name != null)
+			name = name.replace("\"", "");
 
 		return name;
 
@@ -148,8 +137,7 @@ public class HttpUtils {
 			for (InetAddress inetAddress : server) {
 				return inetAddress;
 			}
-		}
-		catch (UnknownHostException e) {
+		} catch (UnknownHostException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
@@ -163,17 +151,16 @@ public class HttpUtils {
 		if (TextUtils.isEmpty(ip)) {
 			Log.e(TAG, "ip not null");
 			return false;
-		}
-		else {
+		} else {
 
 			String line = null;
 			try {
 				Process pro = Runtime.getRuntime().exec("ping " + ip);
-				BufferedReader buf = new BufferedReader(new InputStreamReader(pro.getInputStream()));
+				BufferedReader buf = new BufferedReader(new InputStreamReader(
+						pro.getInputStream()));
 				while ((line = buf.readLine()) != null)
 					System.out.println(line);
-			}
-			catch (Exception ex) {
+			} catch (Exception ex) {
 				Log.e(TAG, ex.getMessage());
 			}
 
@@ -189,12 +176,10 @@ public class HttpUtils {
 			if (inet.getHostAddress() != null) {
 				Log.i("testNet", ip);
 				return true;
-			}
-			else {
+			} else {
 				Log.i(TAG, "true");
 			}
-		}
-		catch (UnknownHostException e) {
+		} catch (UnknownHostException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
@@ -216,13 +201,16 @@ public class HttpUtils {
 	 * @return
 	 * @throws Exception
 	 */
-	public Map<String, Object> exeHttp(Context context, String path, Map<String, Object> params, String method)
-			throws Exception {
-		if (path == null) throw new NullPointerException("url null");
+	public Map<String, Object> exeHttp(String path, Map<String, Object> params,
+			String method) throws Exception {
+		if (path == null)
+			throw new NullPointerException("url null");
 
-		if (params == null) params = new HashMap<String, Object>();
+		if (params == null)
+			params = new HashMap<String, Object>();
 
-		if (method == null) method = GET;
+		if (method == null)
+			method = GET;
 
 		charset = charset == null ? "utf-8" : charset;
 		charset = charset.toUpperCase();
@@ -243,7 +231,9 @@ public class HttpUtils {
 				String value = params.get(key).toString();
 				p += "&" + key + "=" + value;
 			}
-			if (p.trim().length() > 0) p = URLDecoder.decode("?" + p.substring(1, p.length()), charset);
+			if (p.trim().length() > 0)
+				p = URLDecoder
+						.decode("?" + p.substring(1, p.length()), charset);
 
 			url = new URL(path + p);
 			conn = client.open(url);
@@ -252,22 +242,23 @@ public class HttpUtils {
 				if (onNetListenear != null) {
 					onNetListenear.onError(null, conn.getResponseCode());
 				}
-				throw new Exception(
-						"Unexpected HTTP response: " + conn.getResponseCode() + " " + conn.getResponseMessage());
+				throw new Exception("Unexpected HTTP response: "
+						+ conn.getResponseCode() + " "
+						+ conn.getResponseMessage());
 			}
 			this.fileLenth = conn.getContentLength();
 			is = conn.getInputStream();
 			res.put("inputstream", is);
 			res.put("length", fileLenth);
 			return res;
-		}
-		else if (method.equalsIgnoreCase("post")) {
+		} else if (method.equalsIgnoreCase("post")) {
 			conn = client.open(url);
 			conn.setDoOutput(true);
 			conn.setDoInput(true);
 			conn.setRequestMethod(POST);
 			conn.setRequestProperty("User-Agent", USER_AGENT);
-			conn.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
+			conn.setRequestProperty("Content-Type",
+					"application/x-www-form-urlencoded");
 			conn.connect();
 			String p = "";
 			Set<String> keys = params.keySet();
@@ -279,7 +270,8 @@ public class HttpUtils {
 				String value = params.get(key).toString();
 				p += key + "=" + value + "&";
 			}
-			if (p.length() > 0) p = p.substring(0, p.length() - 1);
+			if (p.length() > 0)
+				p = p.substring(0, p.length() - 1);
 
 			out.write(p.getBytes("UTF-8"));
 			out.flush();
@@ -288,8 +280,9 @@ public class HttpUtils {
 				if (onNetListenear != null) {
 					onNetListenear.onError(null, conn.getResponseCode());
 				}
-				throw new Exception(
-						"Unexpected HTTP response: " + conn.getResponseCode() + " " + conn.getResponseMessage());
+				throw new Exception("Unexpected HTTP response: "
+						+ conn.getResponseCode() + " "
+						+ conn.getResponseMessage());
 			}
 			this.fileLenth = conn.getContentLength();
 			is = conn.getInputStream();
@@ -312,13 +305,17 @@ public class HttpUtils {
 	 * @return
 	 * @throws Exception
 	 */
-	public InputStream exeHttpUploadFile(Context context, String path, Map<String, Object> params, String method, String charset)
+	public InputStream exeHttpUploadFile(String path,
+			Map<String, Object> params, String method, String charset)
 			throws Exception {
-		if (path == null) throw new NullPointerException("url null");
+		if (path == null)
+			throw new NullPointerException("url null");
 
-		if (params == null) params = new HashMap<String, Object>();
+		if (params == null)
+			params = new HashMap<String, Object>();
 
-		if (method == null) method = GET;
+		if (method == null)
+			method = GET;
 		charset = charset == null ? "utf-8" : charset;
 		charset = charset.toUpperCase();
 		this.charset = charset;
@@ -337,7 +334,9 @@ public class HttpUtils {
 				String value = params.get(key).toString();
 				p += "&" + key + "=" + value;
 			}
-			if (p.trim().length() > 0) p = URLDecoder.decode("?" + p.substring(1, p.length()), charset);
+			if (p.trim().length() > 0)
+				p = URLDecoder
+						.decode("?" + p.substring(1, p.length()), charset);
 
 			url = new URL(path + p);
 			conn = buildConnection(url, client);
@@ -346,14 +345,14 @@ public class HttpUtils {
 				if (onNetListenear != null) {
 					onNetListenear.onError(null, conn.getResponseCode());
 				}
-				throw new Exception(
-						"Unexpected HTTP response: " + conn.getResponseCode() + " " + conn.getResponseMessage());
+				throw new Exception("Unexpected HTTP response: "
+						+ conn.getResponseCode() + " "
+						+ conn.getResponseMessage());
 			}
 			this.fileLenth = conn.getContentLength();
 			is = conn.getInputStream();
 			return is;
-		}
-		else if (method.equalsIgnoreCase("post")) {
+		} else if (method.equalsIgnoreCase("post")) {
 
 			conn = buildConnection(url, client);
 			conn.setDoOutput(true);
@@ -364,7 +363,8 @@ public class HttpUtils {
 			conn.setRequestProperty("User-Agent", USER_AGENT);
 			conn.setRequestProperty("connection", "Keep-Alive");
 			conn.setRequestProperty("Charsert", charset);
-			conn.setRequestProperty("Content-Type", "multipart/form-data;BOUNDARY=" + BOUNDARY);
+			conn.setRequestProperty("Content-Type",
+					"multipart/form-data;BOUNDARY=" + BOUNDARY);
 			// 指定流的大小，当内容达到这个值的时候就把流输出
 			conn.setChunkedStreamingMode(10240);
 			conn.connect();
@@ -376,8 +376,7 @@ public class HttpUtils {
 				Object obj = params.get(key);
 				if (obj instanceof File) {
 					writeFileForPost(key, (File) obj, out);
-				}
-				else {
+				} else {
 					String value = obj.toString();
 					writeStrForPost(key, value, out);
 				}
@@ -392,8 +391,9 @@ public class HttpUtils {
 				if (onNetListenear != null) {
 					onNetListenear.onError(null, conn.getResponseCode());
 				}
-				throw new Exception(
-						"Unexpected HTTP response: " + conn.getResponseCode() + " " + conn.getResponseMessage());
+				throw new Exception("Unexpected HTTP response: "
+						+ conn.getResponseCode() + " "
+						+ conn.getResponseMessage());
 			}
 
 			this.fileLenth = conn.getContentLength();
@@ -406,18 +406,21 @@ public class HttpUtils {
 
 	}
 
-	public void getMethod(Context context, String url, Map<String, Object> params, SSLContext sctx, HostnameVerifier verifier) {
-		exe(context, url, params, GET, sctx, verifier, null, false);
+	public void getMethod(String url, Map<String, Object> params,
+			SSLContext sctx, HostnameVerifier verifier) {
+		exe(url, params, GET, null, sctx, verifier, null, false);
 	}
 
-	public void postMethod(Context context, String url, Map<String, Object> params, SSLContext sctx, HostnameVerifier verifier) {
-		exe(context, url, params, POST, sctx, verifier, null, false);
+	public void postMethod(String url, Map<String, Object> params,
+			SSLContext sctx, HostnameVerifier verifier) {
+		exe(url, params, POST, null, sctx, verifier, null, false);
 	}
 
-	public Result syncGetMethod(Context context, String url, Map<String, Object> params, SSLContext sctx, HostnameVerifier verifier) {
+	public Result syncGetMethod(String url, Map<String, Object> params,
+			SSLContext sctx, HostnameVerifier verifier) {
 		isFinish = false;
-		exe(context, url, params, GET, sctx, verifier, null, false);
-		this.setOnNetListenear(new OnNetListenear() {
+		exe(url, params, GET, null, sctx, verifier, null, false);
+		this.setOnNetListenear(new Defaultlistenear2() {
 
 			@Override
 			public void onUploadListener(long progress, long tatol) {
@@ -443,17 +446,11 @@ public class HttpUtils {
 				isFinish = true;
 			}
 
-			@Override
-			public void onDwonloadListener(long progress, long tatol, String speend, String utime, String stime) {
-				// TODO Auto-generated method stub
-				
-			}
 		});
 		while (!isFinish) {
 			try {
 				Thread.sleep(1000);
-			}
-			catch (InterruptedException e1) {
+			} catch (InterruptedException e1) {
 				// TODO Auto-generated catch block
 				e1.printStackTrace();
 			}
@@ -462,10 +459,11 @@ public class HttpUtils {
 
 	}
 
-	public Result syncPostMethod(Context context, String url, Map<String, Object> params, SSLContext sctx, HostnameVerifier verifier) {
+	public Result syncPostMethod(String url, Map<String, Object> params,
+			SSLContext sctx, HostnameVerifier verifier) {
 		isFinish = false;
-		exe(context, url, params, POST, sctx, verifier, null, false);
-		this.setOnNetListenear(new OnNetListenear() {
+		exe(url, params, POST, null, sctx, verifier, null, false);
+		this.setOnNetListenear(new Defaultlistenear2() {
 
 			@Override
 			public void onUploadListener(long progress, long tatol) {
@@ -491,17 +489,11 @@ public class HttpUtils {
 				isFinish = true;
 			}
 
-			@Override
-			public void onDwonloadListener(long progress, long tatol, String speend, String utime, String stime) {
-				// TODO Auto-generated method stub
-				
-			}
 		});
 		while (!isFinish) {
 			try {
 				Thread.sleep(1000);
-			}
-			catch (InterruptedException e1) {
+			} catch (InterruptedException e1) {
 				// TODO Auto-generated catch block
 				e1.printStackTrace();
 			}
@@ -510,26 +502,35 @@ public class HttpUtils {
 
 	}
 
-	public void getMethod(Context context, String url, Map<String, Object> params, String fileSavePath, SSLContext sctx, HostnameVerifier verifier) {
-		exe(context, url, params, GET, sctx, verifier, fileSavePath, false);
+	public void getMethod(String url, Map<String, Object> params,
+			Map<String, String> requestProperty, String fileSavePath,
+			SSLContext sctx, HostnameVerifier verifier) {
+		exe(url, params, GET, requestProperty, sctx, verifier, fileSavePath,
+				false);
 	}
 
-	public void postMethod(Context context, String url, Map<String, Object> params, String fileSavePath, SSLContext sctx, HostnameVerifier verifier) {
-		exe(context, url, params, POST, sctx, verifier, fileSavePath, false);
+	public void postMethod(String url, Map<String, Object> params,
+			Map<String, String> requestProperty, String fileSavePath,
+			SSLContext sctx, HostnameVerifier verifier) {
+		exe(url, params, POST, requestProperty, sctx, verifier, fileSavePath,
+				false);
 	}
 
-	public void getMethod(Context context, String url, Map<String, Object> params) {
-		exe(context, url, params, GET, null, null, null, false);
+	public void getMethod(String url, Map<String, Object> params,
+			Map<String, String> requestProperty) {
+		exe(url, params, GET, requestProperty, null, null, null, false);
 	}
 
-	public void postMethod(Context context, String url, Map<String, Object> params) {
-		exe(context, url, params, POST, null, null, null, false);
+	public void postMethod(String url, Map<String, Object> params,
+			Map<String, String> requestProperty) {
+		exe(url, params, POST, requestProperty, null, null, null, false);
 	}
 
-	public Result syncGetMethod(Context context, String url, Map<String, Object> params) {
+	public Result syncGetMethod(String url, Map<String, Object> params,
+			Map<String, String> requestProperty) {
 		isFinish = false;
-		exe(context, url, params, GET, null, null, null, false);
-		this.setOnNetListenear(new OnNetListenear() {
+		exe(url, params, GET, requestProperty, null, null, null, false);
+		this.setOnNetListenear(new Defaultlistenear2() {
 
 			@Override
 			public void onUploadListener(long progress, long tatol) {
@@ -555,17 +556,11 @@ public class HttpUtils {
 				isFinish = true;
 			}
 
-			@Override
-			public void onDwonloadListener(long progress, long tatol, String speend, String utime, String stime) {
-				// TODO Auto-generated method stub
-				
-			}
 		});
 		while (!isFinish) {
 			try {
 				Thread.sleep(1000);
-			}
-			catch (InterruptedException e1) {
+			} catch (InterruptedException e1) {
 				// TODO Auto-generated catch block
 				e1.printStackTrace();
 			}
@@ -574,10 +569,11 @@ public class HttpUtils {
 
 	}
 
-	public Result syncPostMethod(Context context, String url, Map<String, Object> params) {
+	public Result syncPostMethod(String url, Map<String, Object> params,
+			Map<String, String> requestProperty) {
 		isFinish = false;
-		exe(context, url, params, POST, null, null, null, false);
-		this.setOnNetListenear(new OnNetListenear() {
+		exe(url, params, POST, requestProperty, null, null, null, false);
+		this.setOnNetListenear(new Defaultlistenear2() {
 
 			@Override
 			public void onUploadListener(long progress, long tatol) {
@@ -603,17 +599,11 @@ public class HttpUtils {
 				isFinish = true;
 			}
 
-			@Override
-			public void onDwonloadListener(long progress, long tatol, String speend, String utime, String stime) {
-				// TODO Auto-generated method stub
-				
-			}
 		});
 		while (!isFinish) {
 			try {
 				Thread.sleep(1000);
-			}
-			catch (InterruptedException e1) {
+			} catch (InterruptedException e1) {
 				// TODO Auto-generated catch block
 				e1.printStackTrace();
 			}
@@ -622,20 +612,140 @@ public class HttpUtils {
 
 	}
 
-	public void getMethod(Context context, String url, Map<String, Object> params, String fileSavePath) {
-		exe(context, url, params, GET, null, null, fileSavePath, false);
+	public void getMethod(String url, Map<String, Object> params,
+			String fileSavePath, SSLContext sctx, HostnameVerifier verifier) {
+		exe(url, params, GET, null, sctx, verifier, fileSavePath, false);
 	}
 
-	public void postMethod(Context context, String url, Map<String, Object> params, String fileSavePath) {
-		exe(context, url, params, POST, null, null, fileSavePath, false);
+	public void postMethod(String url, Map<String, Object> params,
+			String fileSavePath, SSLContext sctx, HostnameVerifier verifier) {
+		exe(url, params, POST, null, sctx, verifier, fileSavePath, false);
 	}
 
-	private void exe(Context context, final String path, Map<String, Object> params, String method, final SSLContext sctx, final HostnameVerifier verifier, final String fileSavePath, final boolean isSync) {
-		if (path == null) throw new NullPointerException("url null");
+	public void getMethod(String url, Map<String, Object> params) {
+		exe(url, params, GET, null, null, null, null, false);
+	}
 
-		if (params == null) params = new HashMap<String, Object>();
+	public void postMethod(String url, Map<String, Object> params) {
+		exe(url, params, POST, null, null, null, null, false);
+	}
 
-		if (method == null) method = GET;
+	public Result syncGetMethod(String url, Map<String, Object> params) {
+		isFinish = false;
+		exe(url, params, GET, null, null, null, null, false);
+		this.setOnNetListenear(new Defaultlistenear2() {
+
+			@Override
+			public void onUploadListener(long progress, long tatol) {
+				// TODO Auto-generated method stub
+
+			}
+
+			@Override
+			public void onSuccess(Result r) {
+				// TODO Auto-generated method stub
+				isFinish = true;
+			}
+
+			@Override
+			public void onDwonloadListener(long progress, long tatol) {
+				// TODO Auto-generated method stub
+
+			}
+
+			@Override
+			public void onError(Exception e, int status) {
+				// TODO Auto-generated method stub
+				isFinish = true;
+			}
+
+		});
+		while (!isFinish) {
+			try {
+				Thread.sleep(1000);
+			} catch (InterruptedException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+		}
+		return result;
+
+	}
+
+	public Result syncPostMethod(String url, Map<String, Object> params) {
+		isFinish = false;
+		exe(url, params, POST, null, null, null, null, false);
+		this.setOnNetListenear(new Defaultlistenear2() {
+
+			@Override
+			public void onUploadListener(long progress, long tatol) {
+				// TODO Auto-generated method stub
+
+			}
+
+			@Override
+			public void onSuccess(Result r) {
+				// TODO Auto-generated method stub
+				isFinish = true;
+			}
+
+			@Override
+			public void onDwonloadListener(long progress, long tatol) {
+				// TODO Auto-generated method stub
+
+			}
+
+			@Override
+			public void onError(Exception e, int status) {
+				// TODO Auto-generated method stub
+				isFinish = true;
+			}
+
+		});
+		while (!isFinish) {
+			try {
+				Thread.sleep(1000);
+			} catch (InterruptedException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+		}
+		return result;
+
+	}
+
+	public void getMethod(String url, Map<String, Object> params,
+			String fileSavePath) {
+		exe(url, params, GET, null, null, null, fileSavePath, false);
+	}
+
+	public void postMethod(String url, Map<String, Object> params,
+			String fileSavePath) {
+		exe(url, params, POST, null, null, null, fileSavePath, false);
+	}
+
+	public void getMethod(String url, Map<String, Object> params,
+			String fileSavePath, Map<String, String> requestProperty) {
+		exe(url, params, GET, requestProperty, null, null, fileSavePath, false);
+	}
+
+	public void postMethod(String url, Map<String, Object> params,
+			String fileSavePath, Map<String, String> requestProperty) {
+		exe(url, params, POST, requestProperty, null, null, fileSavePath, false);
+	}
+
+	private void exe(final String path, Map<String, Object> params,
+			String method, final Map<String, String> requestProperty,
+			final SSLContext sctx, final HostnameVerifier verifier,
+			final String fileSavePath, final boolean isSync) {
+		if (path == null)
+			throw new NullPointerException("url null");
+
+		if (params == null)
+			params = new HashMap<String, Object>();
+
+		if (method == null)
+			method = GET;
 		final String methodT = method;
 		final Map<String, Object> paramsT = params;
 		ThreadService.getInstance().executeThread(new Runnable() {
@@ -643,22 +753,25 @@ public class HttpUtils {
 			@Override
 			public void run() {
 				// TODO Auto-generated method stub
-				http(path, paramsT, methodT, sctx, verifier, fileSavePath, isSync);
+				http(path, requestProperty, paramsT, methodT, sctx, verifier,
+						fileSavePath, isSync);
 			}
 		});
 
 	}
 
-	private void http(String path, Map<String, Object> params, String method, SSLContext sctx, HostnameVerifier verifier, String fileSavePath, boolean isSync) {
+	private void http(String path, Map<String, String> requestProperty,
+			Map<String, Object> params, String method, SSLContext sctx,
+			HostnameVerifier verifier, String fileSavePath, boolean isSync) {
 		charset = charset == null ? "utf-8" : charset;
 		charset = charset.toUpperCase();
 		HttpURLConnection conn = null;
 		OkHttpClient client = new OkHttpClient();
+
 		URL url = null;
 		try {
 			url = new URL(path);
-		}
-		catch (MalformedURLException e) {
+		} catch (MalformedURLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
@@ -675,53 +788,55 @@ public class HttpUtils {
 				String value = params.get(key).toString();
 				p += "&" + key + "=" + value;
 			}
-			if (p.trim().length() > 0) try {
-				p = URLDecoder.decode("?" + p.substring(1, p.length()), charset);
+			try {
+				if (p.trim().length() > 0)
+					p = URLDecoder.decode("?" + p.substring(1, p.length()),
+							charset);
 				url = new URL(path + p);
 				if (sctx != null) {
 					conn = buildConnection(url, client, sctx, verifier);
-				}
-				else {
+				} else {
 					conn = buildConnection(url, client);
 				}
+
 				conn.setRequestProperty("User-Agent", USER_AGENT);
+				if (requestProperty != null) {
+					for (Entry<String, String> e : requestProperty.entrySet()) {
+						conn.setRequestProperty(e.getKey(), e.getValue());
+					}
+				}
 				if (conn.getResponseCode() != 200) {
 					if (onNetListenear != null) {
 						onNetListenear.onError(null, conn.getResponseCode());
 					}
-					throw new Exception(
-							"Unexpected HTTP response: " + conn.getResponseCode() + " " + conn.getResponseMessage());
+					throw new Exception("Unexpected HTTP response: "
+							+ conn.getResponseCode() + " "
+							+ conn.getResponseMessage());
 				}
 				this.fileLenth = conn.getContentLength();
 				is = conn.getInputStream();
 				if (isSync) {
-					this.resultInput = is;
-				}
-				else if (fileSavePath == null) {
+					this.result.resultInput = is;
+				} else if (fileSavePath == null) {
 					readResponse(is, null);
-				}
-				else {
+				} else {
 					readResponse(is, new File(fileSavePath));
 				}
-			}
-			catch (Exception e) {
+			} catch (Exception e) {
 				if (onNetListenear != null) {
 					onNetListenear.onError(e, 0);
 				}
-			}
-			finally {
+			} finally {
 				if (conn != null && !isSync) {
 					conn.disconnect();
 					conn = null;
 				}
 			}
-		}
-		else {
+		} else {
 			// post
 			if (sctx != null) {
 				conn = buildConnection(url, client, sctx, verifier);
-			}
-			else {
+			} else {
 				conn = buildConnection(url, client);
 			}
 			conn.setDoOutput(true);
@@ -734,7 +849,13 @@ public class HttpUtils {
 				conn.setRequestProperty("connection", "Keep-Alive");
 				conn.setRequestProperty("Charsert", charset);
 				conn.setRequestProperty("User-Agent", USER_AGENT);
-				conn.setRequestProperty("Content-Type", "multipart/form-data;BOUNDARY=" + BOUNDARY);
+				conn.setRequestProperty("Content-Type",
+						"multipart/form-data;BOUNDARY=" + BOUNDARY);
+				if (requestProperty != null) {
+					for (Entry<String, String> e : requestProperty.entrySet()) {
+						conn.setRequestProperty(e.getKey(), e.getValue());
+					}
+				}
 				// 指定流的大小，当内容达到这个值的时候就把流输出
 				conn.setChunkedStreamingMode(10240);
 				conn.connect();
@@ -746,32 +867,29 @@ public class HttpUtils {
 					if (onNetListenear != null) {
 						onNetListenear.onError(null, conn.getResponseCode());
 					}
-					throw new Exception(
-							"Unexpected HTTP response: " + conn.getResponseCode() + " " + conn.getResponseMessage());
+					throw new Exception("Unexpected HTTP response: "
+							+ conn.getResponseCode() + " "
+							+ conn.getResponseMessage());
 				}
 
 				this.fileLenth = conn.getContentLength();
 				is = conn.getInputStream();
 				if (isSync) {
-					this.resultInput = is;
-				}
-				else if (fileSavePath == null) {
+					this.result.resultInput = is;
+				} else if (fileSavePath == null) {
 					readResponse(is, null);
-				}
-				else {
+				} else {
 					readResponse(is, new File(fileSavePath));
 				}
 				if (onNetListenear != null) {
 					onNetListenear.onSuccess(result);
 				}
-			}
-			catch (Exception e) {
+			} catch (Exception e) {
 				// TODO Auto-generated catch block
 				if (onNetListenear != null) {
 					onNetListenear.onError(e, 0);
 				}
-			}
-			finally {
+			} finally {
 				if (conn != null && !isSync) {
 					conn.disconnect();
 					conn = null;
@@ -781,11 +899,14 @@ public class HttpUtils {
 		}
 	}
 
-	public InputStream writeParams(String method, Map<String, Object> params, String urlStr, Long startPos, OkHttpClient client, SSLContext sctx, HostnameVerifier verifier) {
+	public InputStream writeParams(String method, Map<String, Object> params,
+			String urlStr, Long startPos, OkHttpClient client, SSLContext sctx,
+			HostnameVerifier verifier) {
 		URL url = null;
 		HttpURLConnection conn = null;
 		InputStream is = null;
-		if (method == null) method = GET;
+		if (method == null)
+			method = GET;
 
 		if (method.equalsIgnoreCase("get")) {
 			// get
@@ -795,8 +916,7 @@ public class HttpUtils {
 					url = new URL(urlStr);
 					if (sctx != null) {
 						conn = buildConnection(url, client, sctx, verifier);
-					}
-					else {
+					} else {
 						conn = buildConnection(url, client);
 					}
 					String property = "bytes=" + startPos + "-";
@@ -804,23 +924,23 @@ public class HttpUtils {
 					conn.setRequestProperty("User-Agent", USER_AGENT);
 					if (conn.getResponseCode() >= 300) {
 						if (onNetListenear != null) {
-							onNetListenear.onError(null, conn.getResponseCode());
+							onNetListenear
+									.onError(null, conn.getResponseCode());
 						}
-						throw new Exception("Unexpected HTTP response: " + conn.getResponseCode() + " "
+						throw new Exception("Unexpected HTTP response: "
+								+ conn.getResponseCode() + " "
 								+ conn.getResponseMessage());
 					}
 					this.fileLenth = conn.getContentLength();
 					is = conn.getInputStream();
 					return is;
-				}
-				catch (Exception e) {
+				} catch (Exception e) {
 					if (onNetListenear != null) {
 						onNetListenear.onError(e, 0);
 					}
 				}
 
-			}
-			else {
+			} else {
 				String p = "";
 
 				Set<String> keys = params.keySet();
@@ -830,44 +950,44 @@ public class HttpUtils {
 					String value = params.get(key).toString();
 					p += "&" + key + "=" + value;
 				}
-				if (p.trim().length() > 0) try {
-					p = URLDecoder.decode("?" + p.substring(1, p.length()), charset);
-					url = new URL(urlStr + p);
-					if (sctx != null) {
-						conn = buildConnection(url, client, sctx, verifier);
-					}
-					else {
-						conn = buildConnection(url, client);
-					}
-					String property = "bytes=" + startPos + "-";
-					conn.setRequestProperty("RANGE", property);
-					conn.setRequestProperty("User-Agent", USER_AGENT);
-					if (conn.getResponseCode() != 200) {
-						if (onNetListenear != null) {
-							onNetListenear.onError(null, conn.getResponseCode());
+				if (p.trim().length() > 0)
+					try {
+						p = URLDecoder.decode("?" + p.substring(1, p.length()),
+								charset);
+						url = new URL(urlStr + p);
+						if (sctx != null) {
+							conn = buildConnection(url, client, sctx, verifier);
+						} else {
+							conn = buildConnection(url, client);
 						}
-						throw new Exception("Unexpected HTTP response: " + conn.getResponseCode() + " "
-								+ conn.getResponseMessage());
+						String property = "bytes=" + startPos + "-";
+						conn.setRequestProperty("RANGE", property);
+						conn.setRequestProperty("User-Agent", USER_AGENT);
+						if (conn.getResponseCode() != 200) {
+							if (onNetListenear != null) {
+								onNetListenear.onError(null,
+										conn.getResponseCode());
+							}
+							throw new Exception("Unexpected HTTP response: "
+									+ conn.getResponseCode() + " "
+									+ conn.getResponseMessage());
+						}
+						this.fileLenth = conn.getContentLength();
+						is = conn.getInputStream();
+						return is;
+					} catch (Exception e) {
+						if (onNetListenear != null) {
+							onNetListenear.onError(e, 0);
+						}
 					}
-					this.fileLenth = conn.getContentLength();
-					is = conn.getInputStream();
-					return is;
-				}
-				catch (Exception e) {
-					if (onNetListenear != null) {
-						onNetListenear.onError(e, 0);
-					}
-				}
 
 			}
 
-		}
-		else {
+		} else {
 			// post
 			if (sctx != null) {
 				conn = buildConnection(url, client, sctx, verifier);
-			}
-			else {
+			} else {
 				conn = buildConnection(url, client);
 			}
 			conn.setDoOutput(true);
@@ -882,7 +1002,8 @@ public class HttpUtils {
 				conn.setRequestProperty("User-Agent", USER_AGENT);
 				String property = "bytes=" + startPos + "-";
 				conn.setRequestProperty("RANGE", property);
-				conn.setRequestProperty("Content-Type", "multipart/form-data;BOUNDARY=" + BOUNDARY);
+				conn.setRequestProperty("Content-Type",
+						"multipart/form-data;BOUNDARY=" + BOUNDARY);
 				// 指定流的大小，当内容达到这个值的时候就把流输出
 				conn.setChunkedStreamingMode(10240);
 				conn.connect();
@@ -894,14 +1015,14 @@ public class HttpUtils {
 					if (onNetListenear != null) {
 						onNetListenear.onError(null, conn.getResponseCode());
 					}
-					throw new Exception(
-							"Unexpected HTTP response: " + conn.getResponseCode() + " " + conn.getResponseMessage());
+					throw new Exception("Unexpected HTTP response: "
+							+ conn.getResponseCode() + " "
+							+ conn.getResponseMessage());
 				}
 
 				this.fileLenth = conn.getContentLength();
 				return is = conn.getInputStream();
-			}
-			catch (Exception e) {
+			} catch (Exception e) {
 				// TODO Auto-generated catch block
 				if (onNetListenear != null) {
 					onNetListenear.onError(e, 0);
@@ -912,7 +1033,8 @@ public class HttpUtils {
 		return is;
 	}
 
-	private void writeParamsForPost(Map<String, Object> params, OutputStream out) throws Exception {
+	private void writeParamsForPost(Map<String, Object> params, OutputStream out)
+			throws Exception {
 
 		Set<String> keys = params.keySet();
 		Iterator<String> it = keys.iterator();
@@ -921,8 +1043,7 @@ public class HttpUtils {
 			Object obj = params.get(key);
 			if (obj instanceof File) {
 				writeFileForPost(key, (File) obj, out);
-			}
-			else {
+			} else {
 				String value = obj.toString();
 				writeStrForPost(key, value, out);
 			}
@@ -937,13 +1058,16 @@ public class HttpUtils {
 	public void readResponse(InputStream input, File f) {
 		if (f != null) {
 			readFile(input, f);
-		}
-		else {
-			resultByte = readBuffer(input);
+		} else {
+			result.resultByte = readBuffer(input);
+			if (onNetListenear != null) {
+				onNetListenear.onSuccess(result);
+			}
 		}
 	}
 
-	private void writeStrForPost(String key, String value, OutputStream out) throws Exception {
+	private void writeStrForPost(String key, String value, OutputStream out)
+			throws Exception {
 		StringBuilder sb = new StringBuilder();
 		sb.append("--");
 		sb.append(BOUNDARY);
@@ -954,7 +1078,8 @@ public class HttpUtils {
 		out.write(encode(value + "\r\n", charset));
 	}
 
-	private void writeFileForPost(String key, File f, OutputStream out) throws Exception {
+	private void writeFileForPost(String key, File f, OutputStream out)
+			throws Exception {
 		StringBuilder sb = new StringBuilder();
 		// 添加form属性
 		sb.append("--");
@@ -985,8 +1110,7 @@ public class HttpUtils {
 			if (count >= 10) {
 				count = 0;
 				out.flush();
-			}
-			else {
+			} else {
 				count++;
 			}
 		}
@@ -1009,22 +1133,18 @@ public class HttpUtils {
 			}
 			os.flush();
 			os.close();
-			resultFile = new File(f.getAbsolutePath());
-		}
-		catch (FileNotFoundException e) {
+			result.resultFile = new File(f.getAbsolutePath());
+		} catch (FileNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-		}
-		catch (IOException e) {
+		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-		}
-		finally {
+		} finally {
 			if (is != null) {
 				try {
 					is.close();
-				}
-				catch (IOException e) {
+				} catch (IOException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
@@ -1043,7 +1163,9 @@ public class HttpUtils {
 		fileName = Utils.getFileExitName(fileName);
 		boolean isImage = false;
 		isImage = Utils.isImage(fileName);
-		if (isImage) { return "image/" + fileName; }
+		if (isImage) {
+			return "image/" + fileName;
+		}
 		return "application/octet-stream"; // 此行不再细分是否为图片，全部作为application/octet-stream
 											// 类型
 	}
@@ -1063,28 +1185,31 @@ public class HttpUtils {
 			if (url.getProtocol().equals("https")) {
 				SSLContext sctx = null;
 				sctx = SSLContext.getInstance("TLS");
-				sctx.init(new KeyManager[0], new TrustManager[] { new X509TrustManager() {
+				sctx.init(new KeyManager[0],
+						new TrustManager[] { new X509TrustManager() {
 
-					@Override
-					public X509Certificate[] getAcceptedIssuers() {
-						// TODO Auto-generated method stub
-						return null;
-					}
+							@Override
+							public X509Certificate[] getAcceptedIssuers() {
+								// TODO Auto-generated method stub
+								return null;
+							}
 
-					@Override
-					public void checkServerTrusted(X509Certificate[] chain, String authType)
-							throws CertificateException {
-						// TODO Auto-generated method stub
+							@Override
+							public void checkServerTrusted(
+									X509Certificate[] chain, String authType)
+									throws CertificateException {
+								// TODO Auto-generated method stub
 
-					}
+							}
 
-					@Override
-					public void checkClientTrusted(X509Certificate[] chain, String authType)
-							throws CertificateException {
-						// TODO Auto-generated method stub
+							@Override
+							public void checkClientTrusted(
+									X509Certificate[] chain, String authType)
+									throws CertificateException {
+								// TODO Auto-generated method stub
 
-					}
-				} }, new SecureRandom());
+							}
+						} }, new SecureRandom());
 				HttpsURLConnection conn = (HttpsURLConnection) client.open(url);
 				conn.setSSLSocketFactory(sctx.getSocketFactory());
 				conn.setHostnameVerifier(new HostnameVerifier() {
@@ -1097,30 +1222,27 @@ public class HttpUtils {
 					}
 				});
 				return conn;
-			}
-			else {
+			} else {
 				return client.open(url);
 			}
-		}
-		catch (NoSuchAlgorithmException e) {
+		} catch (NoSuchAlgorithmException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-		}
-		catch (KeyManagementException e) {
+		} catch (KeyManagementException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		return null;
 	}
 
-	public HttpURLConnection buildConnection(URL url, OkHttpClient client, SSLContext sctx, HostnameVerifier verifier) {
+	public HttpURLConnection buildConnection(URL url, OkHttpClient client,
+			SSLContext sctx, HostnameVerifier verifier) {
 		if (url.getProtocol().equals("https")) {
 			HttpsURLConnection conn = (HttpsURLConnection) client.open(url);
 			conn.setSSLSocketFactory(sctx.getSocketFactory());
 			conn.setHostnameVerifier(verifier);
 			return conn;
-		}
-		else {
+		} else {
 			return client.open(url);
 		}
 	}
@@ -1156,36 +1278,10 @@ public class HttpUtils {
 
 		void onDwonloadListener(long progress, long tatol);
 
-		void onDwonloadListener(long progress, long tatol, String speend, String utime, String stime);
+		void onDwonloadListener(long progress, long tatol, long speed,
+				String speend, String utime, String stime, int threadId);
 
 		void onSuccess(Result r);
 	}
 
-	public class Result {
-
-		public String string() {
-			try {
-				resultStr = new String(bytes(), charset);
-			}
-			catch (UnsupportedEncodingException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-			return resultStr;
-
-		}
-
-		public InputStream inputStream() {
-			return resultInput;
-		}
-
-		public byte[] bytes() {
-			return resultByte;
-
-		}
-
-		public File file() {
-			return resultFile;
-		}
-	}
 }

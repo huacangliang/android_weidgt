@@ -30,9 +30,12 @@ import javax.net.ssl.SSLContext;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
+import com.jingzhong.asyntask2.listenear.Defaultlistenear;
 import com.squareup.okhttp.OkHttpClient;
 
 import android.content.Context;
+import android.os.Environment;
+import android.text.TextUtils;
 import android.text.format.Formatter;
 
 /**
@@ -47,22 +50,22 @@ public class MultiThreadDownLoadUtils
 	/**
 	 * 
 	 */
-	private static final long	serialVersionUID	= 1L;
+	private static final long				serialVersionUID	= 1L;
 
 	private volatile boolean				start;
 
 	private volatile boolean				stop;
 
 	// 临时保存下载数据地址
-	private File				temp;
+	private File							temp;
 
 	// 下载的组数
-	private volatile List<DownloadBean>	info				= new ArrayList<MultiThreadDownLoadUtils.DownloadBean>();
+	private volatile List<DownloadBean>		info				= new ArrayList<MultiThreadDownLoadUtils.DownloadBean>();
 
 	// 待下载队列,先进先出
 	private volatile Queue<DownloadBean>	queue				= new LinkedList<MultiThreadDownLoadUtils.DownloadBean>();
 
-	private volatile DownListenear		downListenear;
+	private volatile DownListenear			downListenear;
 
 	// 是否是单线程下载模式
 	private volatile boolean				isSingleMode		= false;
@@ -70,16 +73,18 @@ public class MultiThreadDownLoadUtils
 	/**
 	 * 每块下载大小，默认每块大小为10MB
 	 */
-	public int					BLOCKSIZE			= 1024 * 1000 * 10;
+	public int								BLOCKSIZE			= 1024 * 1000 * 10;
 
 	/**
 	 * 最多几个线程下载，默认10个
 	 */
-	public static int			MAXTHREADNUM		= 10;
+	public static int						MAXTHREADNUM		= 10;
 
 	public volatile long					tatol				= 1;
 
 	private volatile Context				ctx;
+
+	private int								threadId;
 
 	public interface DownListenear
 			extends HttpUtils.OnNetListenear {
@@ -91,8 +96,27 @@ public class MultiThreadDownLoadUtils
 		boolean continueDownload(String filePath);
 	}
 
-	public void download(String fileName, String filePath, String url, DownListenear downListenear) {
-		this.downListenear = downListenear;
+	public String getFileName(String url) {
+
+		return url.substring(url.lastIndexOf("/") + 1, url.length());
+
+	}
+
+	/**
+	 * 可在ui线程修改数据
+	 * 
+	 * @param threadId
+	 * @param fileName
+	 * @param filePath
+	 * @param url
+	 * @param downListenear
+	 */
+	public void download(int threadId, String fileName, String filePath, String url, DownListenear downListenear) {
+		this.downListenear = new Defaultlistenear(downListenear);
+		setThreadId(threadId);
+		if (TextUtils.isEmpty(fileName)) {
+			fileName = getFileName(url);
+		}
 		temp = new File(filePath, fileName + ".temp");
 		info = readDownloadInfo(temp);
 		start = true;
@@ -111,7 +135,6 @@ public class MultiThreadDownLoadUtils
 				if (downListenear != null
 						&& downListenear.continueDownload(new File(filePath, fileName).getAbsolutePath())) {
 					new File(filePath, fileName).delete();
-					BLOCKSIZE = 1024 * 1000 * 10;
 					startDownload(fileName, filePath, url);
 				}
 				else {
@@ -120,7 +143,42 @@ public class MultiThreadDownLoadUtils
 			}
 			else {
 				// 开始下载
-				BLOCKSIZE = 1024 * 1000 * 10;
+				startDownload(fileName, filePath, url);
+			}
+		}
+	}
+
+	public void download(String fileName, String filePath, String url, DownListenear downListenear) {
+		this.downListenear = downListenear;
+		if (TextUtils.isEmpty(fileName)) {
+			fileName = getFileName(url);
+		}
+		temp = new File(filePath, fileName + ".temp");
+		info = readDownloadInfo(temp);
+		start = true;
+		stop = false;
+		DonwloadHepler donwloadHepler = new DonwloadHepler();
+		donwloadHepler.stime = System.currentTimeMillis();
+		ThreadService.getInstance().executeThread(donwloadHepler);
+		if (info != null && info.size() > 0) {
+			// 继续下载
+			continueDownload(fileName, filePath, url);
+		}
+		else {
+			// 重新开始
+			if (new File(filePath, fileName).exists()) {
+				// 存在该文件，询问是否要重新下载，如果重新下载，原文件将被覆盖掉
+				if (downListenear != null
+						&& downListenear.continueDownload(new File(filePath, fileName).getAbsolutePath())) {
+					new File(filePath, fileName).delete();
+					startDownload(fileName, filePath, url);
+				}
+				else {
+					return;
+				}
+			}
+			else {
+				// 开始下载
 				startDownload(fileName, filePath, url);
 			}
 		}
@@ -128,6 +186,9 @@ public class MultiThreadDownLoadUtils
 
 	public void download(Map<String, Object> params, String method, String fileName, String filePath, String url, DownListenear downListenear) {
 		this.downListenear = downListenear;
+		if (TextUtils.isEmpty(fileName)) {
+			fileName = getFileName(url);
+		}
 		temp = new File(filePath, fileName + ".temp");
 		info = readDownloadInfo(temp);
 		start = true;
@@ -244,6 +305,12 @@ public class MultiThreadDownLoadUtils
 
 	}
 
+	public static final int	diskNotFree		= -1;
+
+	public static final int	diskCanNotWrite	= -2;
+
+	public static final int	diskCanNotRead	= -3;
+
 	/**
 	 * 获取下载信息
 	 * 
@@ -252,6 +319,20 @@ public class MultiThreadDownLoadUtils
 	 * @throws IOException
 	 */
 	private List<DownloadBean> readDownloadInfo(String url, String path, String name) throws IOException {
+		if (!Environment.getExternalStorageDirectory().canRead()) {
+			if (downListenear != null) {
+				downListenear.onError(url, new Exception("内存不能读取数据！"), diskCanNotRead);
+				return null;
+			}
+		}
+
+		if (!Environment.getExternalStorageDirectory().canWrite()) {
+			if (downListenear != null) {
+				downListenear.onError(url, new Exception("内存不能写入数据！"), diskCanNotWrite);
+				return null;
+			}
+		}
+
 		List<DownloadBean> t = new ArrayList<MultiThreadDownLoadUtils.DownloadBean>();
 		HttpURLConnection conn = new HttpUtils().buildConnection(new URL(url), new OkHttpClient());
 		setHeader(conn);
@@ -263,6 +344,13 @@ public class MultiThreadDownLoadUtils
 		}
 		else {
 			int length = conn.getContentLength();
+			if (length > Environment.getExternalStorageDirectory().getFreeSpace()) {
+				if (downListenear != null) {
+
+					downListenear.onError(url, new Exception("内存不足！"), diskNotFree);
+					return null;
+				}
+			}
 			tatol = length;
 			if (length == -1 || length == 0) {
 				// 开启单线程下载模式
@@ -277,6 +365,10 @@ public class MultiThreadDownLoadUtils
 				}
 				else {
 					blockNum = length / BLOCKSIZE;
+					if (blockNum < MAXTHREADNUM) {
+						BLOCKSIZE = length / MAXTHREADNUM;
+						blockNum = MAXTHREADNUM;
+					}
 				}
 
 				for (int i = 0; i < blockNum; i++) {
@@ -334,17 +426,17 @@ public class MultiThreadDownLoadUtils
 			while ((t = br.readLine()) != null) {
 				sb.append(t);
 			}
-			progress=0;
-			String[] spliStr=sb.toString().split("-->");
-			String list=spliStr[0];
-			String pString=spliStr[1];
-			progress=Integer.parseInt(pString);
+			progress = 0;
+			String[] spliStr = sb.toString().split("-->");
+			String list = spliStr[0];
+			String pString = spliStr[1];
+			progress = Integer.parseInt(pString);
 			Type type = new TypeToken<List<DownloadBean>>() {
 			}.getType();
 			List<DownloadBean> lt = gson.fromJson(list, type);
 			br = null;
 			List<DownloadBean> te = new ArrayList<MultiThreadDownLoadUtils.DownloadBean>();
-			
+
 			for (int i = 0; i < lt.size(); i++) {
 				DownloadBean bena = new DownloadBean(lt.get(i).getFileName(), lt.get(i).getFilePath(),
 						lt.get(i).getUrl(), lt.get(i).getStartPos(), lt.get(i).getEndPos());
@@ -374,7 +466,7 @@ public class MultiThreadDownLoadUtils
 		Type type = new TypeToken<List<DownloadBean>>() {
 		}.getType();
 		String json = gson.toJson(info, type);
-		json+="-->"+progress;
+		json += "-->" + progress;
 		try {
 			FileOutputStream fos = new FileOutputStream(path);
 			fos.write(json.getBytes());
@@ -615,11 +707,9 @@ public class MultiThreadDownLoadUtils
 
 		long				speend;
 
-		SimpleDateFormat	format	= new SimpleDateFormat("HH:mm:ss");
+		SimpleDateFormat	format	= new SimpleDateFormat("yy-MM-dd HH:mm:ss");
 
 		StringBuilder		sb		= new StringBuilder();
-
-		Date				ud		= new Date();
 
 		Date				sd		= new Date();
 
@@ -628,6 +718,7 @@ public class MultiThreadDownLoadUtils
 			// TODO Auto-generated method stub
 			oldProgress = 0;
 			while (start) {
+
 				try {
 					Thread.sleep(1000);
 				}
@@ -635,12 +726,14 @@ public class MultiThreadDownLoadUtils
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
-				
+				if (has_download_ok) {
+					break;
+				}
 				sb.delete(0, sb.length());
 				if (oldProgress == 0) {
-
 					speend = progress;
 					oldProgress = progress;
+					continue;
 				}
 				else {
 					speend = (progress - oldProgress);
@@ -651,17 +744,14 @@ public class MultiThreadDownLoadUtils
 				utime = System.currentTimeMillis() - stime;
 
 				if (downListenear != null) {
-					ud.setTime(utime);
 					sd.setTime(stime);
 					if (progress > tatol) {
 						progress = tatol;
 					}
-					downListenear.onDwonloadListener(progress, tatol, sb.toString(), format.format(ud),
-							format.format(sd));
+					downListenear.onDwonloadListener(progress, tatol, speend,sb.toString(),
+							DateFormatterUtils.formatterToTime(utime), format.format(sd),0);
 				}
-				if (has_download_ok) {
-					break;
-				}
+
 			}
 		}
 
@@ -857,5 +947,13 @@ public class MultiThreadDownLoadUtils
 
 	public void setDownListenear(DownListenear downListenear) {
 		this.downListenear = downListenear;
+	}
+
+	public int getThreadId() {
+		return threadId;
+	}
+
+	public void setThreadId(int threadId) {
+		this.threadId = threadId;
 	}
 }

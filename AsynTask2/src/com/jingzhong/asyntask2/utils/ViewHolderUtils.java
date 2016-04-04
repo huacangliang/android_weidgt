@@ -8,7 +8,7 @@ import android.view.View;
 public class ViewHolderUtils {
 
 	@SuppressWarnings("unchecked")
-	public static View getViewById(View root, int id) {
+	public static <T> T getViewById(View root, int id) {
 		if(root==null)
 			new Asyntask2Exception("null point container");
 		
@@ -20,14 +20,14 @@ public class ViewHolderUtils {
 			root.setTag(viewHolder);
 			View chilrdView = root.findViewById(id);
 			viewHolder.put(id, chilrdView);
-			return chilrdView;
+			return (T) chilrdView;
 		}
 		View chilrdView = viewHolder.get(id);
 		if (chilrdView == null) {
 			chilrdView = root.findViewById(id);
 			viewHolder.put(id, chilrdView);
 		}
-		return chilrdView;
+		return (T) chilrdView;
 
 	}
 }
