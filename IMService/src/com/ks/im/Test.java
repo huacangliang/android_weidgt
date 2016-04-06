@@ -50,8 +50,8 @@ public class Test {
 		public void login() throws IOException {
 			Message msg = new Message();
 			msg.setFromName("dengxx");
-			msg.setFromPhoneNo("15757142029");
-			msg.setToPhoneNo("15757142029");
+			msg.setFromPhoneNo("1575*******");
+			msg.setToPhoneNo("15757*******");
 			msg.setUid(10000);
 			msg.setType(Configuration.MSGTYPE_LOGIN);
 			byte[] sendData = packetData(msg);
@@ -108,8 +108,8 @@ public class Test {
 		public void sendMsg(DatagramSocket ds, int port) throws IOException {
 			Message msg = new Message();
 			msg.setFromName("dengxx");
-			msg.setFromPhoneNo("15757142029");
-			msg.setToPhoneNo("15757142029");
+			msg.setFromPhoneNo("15757*******");
+			msg.setToPhoneNo("157571*******");
 			msg.setUid(10000);
 			msg.setMsg("齉" + count);
 			msg.setType(Configuration.MSGTYPE_MSG);
@@ -123,8 +123,8 @@ public class Test {
 		public void logOut(DatagramSocket ds, int port) throws IOException {
 			Message msg = new Message();
 			msg.setFromName("dengxx");
-			msg.setFromPhoneNo("15757142029");
-			msg.setToPhoneNo("15757142029");
+			msg.setFromPhoneNo("15757*******");
+			msg.setToPhoneNo("157571*******");
 			msg.setUid(10000);
 			msg.setType(Configuration.MSGTYPE_LOGOUT);
 			byte[] sendData = packetData(msg);
@@ -309,7 +309,7 @@ public class Test {
 						e.printStackTrace();
 					}
 					try {
-						Thread.sleep(6 * 1000);
+						Thread.sleep(6 * 10000);
 					} catch (InterruptedException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
